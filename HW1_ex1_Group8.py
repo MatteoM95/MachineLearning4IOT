@@ -14,6 +14,19 @@ output_filename = args.output
 input_dir = args.input
 normalize = args.normalize
 
+tMAX = 0
+tMIN = 9999999
+
+def normalizeFunc(tmp):
+
+    if(tMAX > tmp):
+        tMAX = tmp
+    if(tMIN < tmp)
+        tMIN = tmp
+
+    norm = (tmp - tMIN) / (tMAX - tMIN)
+    return norm
+
 def main():
     with tf.io.TFRecordWriter(output_filename) as writer:
         with open(f"{input_dir}/dataset.csv", "r") as fp:
@@ -27,6 +40,10 @@ def main():
                     timestamp = datetime(int(year), int(month), int(day), int(hour), int(minutes), int(seconds)).timestamp()
                     audio_path = os.path.join(input_dir, audioName)
                     audio = tf.io.read_file(audio_path)
+
+                    if(normalize):
+                        normalizeFunc(temperature)
+
 
                     timestamp_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(timestamp)]))
                     temperature_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(temperature)]))
