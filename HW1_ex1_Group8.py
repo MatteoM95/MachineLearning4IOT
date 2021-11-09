@@ -4,9 +4,9 @@ import tensorflow as tf
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", type=str, default="./dataset", help="Input File Name. Default: ./raw_data")
-parser.add_argument("--output", type=str, default="./th.tfrecord", help="Output File Name. Default: ./th.tfreord")
-parser.add_argument("--normalize", type=str, default="False", help="Normalize Temperature? Insert --normalize")
+parser.add_argument("--input", type=str, default="./datasets/dataset.csv", help="Input File Name. Default: ./dataset.csv")
+parser.add_argument("--output", type=str, default="./th.tfrecord", help="Output File Name. Default: ./th.tfrecord")
+parser.add_argument("--normalize", default="False", help="Normalize Temperature? Insert --normalize")
 args = parser.parse_args()
 
 output_filename = args.output
@@ -38,21 +38,18 @@ def main():
 
                     #Normalization of temperature if required
                     if normalize:
-                        temperatureNorm = normalize_func(temperature)
+                        temperature = normalize_func(temperature)
 
                     #Conversion to best format for saving HDD space
-                    #TODO
+                    timestamp_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(timestamp)]))
+                    temperature_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(temperature)]))
+                    humidity_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(humidity)]))
 
-                    # timestamp_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(timestamp)]))
-                    # temperature_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(temperature)]))
-                    # humidity_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(humidity)]))
-                    #
-                    # mapping = {'timestamp': timestamp_feature, \
-                    #            'temperature': temperature_feature, \
-                    #            'humidity': humidity_feature
-                    #            }
-                    # payload = tf.train.Example(features=tf.train.Features(feature=mapping))
-                    # writer.write(payload.SerializeToString())
+                    mapping = {'timestamp': timestamp_feature, \
+                               'humidity': humidity_feature
+                                }
+                    payload = tf.train.Example(features=tf.train.Features(feature=mapping))
+                    writer.write(payload.SerializeToString())
 
     print(os.path.getsize(output_filename))
 
