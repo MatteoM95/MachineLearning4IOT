@@ -5,14 +5,14 @@ from datetime import datetime
 import numpy as np
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", type=str, default="./raw_data", help="Input File Name. Default: ./raw_data")
-parser.add_argument("--output", type=str, default="./fusion.tfrecord", help="Output File Name. Default: ./fusion.tfreord")
-parser.add_argument("--normalize", type=str, default="", help="Normliaze Temperature: --normalize")
+parser.add_argument("--input", type=str, default="./dataset", help="Input File Name. Default: ./raw_data")
+parser.add_argument("--output", type=str, default="./th.tfrecord", help="Output File Name. Default: ./th.tfreord")
+parser.add_argument("--normalize", type=str, default="False", help="Normalize Temperature: --normalize == True")
 args = parser.parse_args()
 
 output_filename = args.output
 input_dir = args.input
-
+normalize = args.normalize
 
 def main():
     with tf.io.TFRecordWriter(output_filename) as writer:
