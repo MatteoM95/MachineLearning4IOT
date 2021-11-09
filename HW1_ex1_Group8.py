@@ -13,15 +13,18 @@ output_filename = args.output
 input_dir = args.input
 normalize = args.normalize
 
-tMAX = 0
-tMIN = 9999999
+
 
 def normalize_func(tmp):
-    if tMAX > tmp:
-        tMAX = tmp
-    if tMIN < tmp:
-        tMIN = tmp
-    norm = (tmp - tMIN) / (tMAX - tMIN)
+    #PROBLEMA: non me le vede come variabili globali
+    t_MAX = 0
+    t_MIN = 9999999
+
+    if t_MAX > int(tmp):
+        t_MAX = int(tmp)
+    if t_MIN < int(tmp):
+        t_MIN = int(tmp)
+    norm = (int(tmp) - t_MIN) / (t_MAX - t_MIN)
     return norm
 
 def main():
