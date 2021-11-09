@@ -18,12 +18,10 @@ tMAX = 0
 tMIN = 9999999
 
 def normalizeFunc(tmp):
-
-    if(tMAX > tmp):
+    if tMAX > tmp:
         tMAX = tmp
-    if(tMIN < tmp)
+    if tMIN < tmp
         tMIN = tmp
-
     norm = (tmp - tMIN) / (tMAX - tMIN)
     return norm
 
@@ -41,8 +39,8 @@ def main():
                     audio_path = os.path.join(input_dir, audioName)
                     audio = tf.io.read_file(audio_path)
 
-                    if(normalize):
-                        normalizeFunc(temperature)
+                    if normalize:
+                        temperatureNorm = normalizeFunc(temperature)
 
 
                     timestamp_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(timestamp)]))
