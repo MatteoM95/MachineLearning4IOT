@@ -15,8 +15,8 @@ output_filename = args.output
 input_dir = args.input
 normalize = args.normalize
 
-t_MAX = 0
-t_MIN = 9999999
+t_MIN = 0
+t_MAX = 50
 
 def normalize_func(tmp): 
     global t_MAX, t_MIN
@@ -56,6 +56,7 @@ def main():
                     humidity_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(humidity)]))
 
                     mapping = {'timestamp': timestamp_feature, \
+                               'temperature': temperature_feature, \
                                'humidity': humidity_feature
                                 }
                     payload = tf.train.Example(features=tf.train.Features(feature=mapping))
