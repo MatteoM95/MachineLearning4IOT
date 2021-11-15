@@ -81,18 +81,18 @@ mfccFast_param = {'num_mel_bins':40,
 num_coefficients = 10
 
 mfccSlow_execTime, mfccSlow = audio_processing(sftf_param, mfccSlow_param, num_coefficients)
-mfccFast_execTime, mfccFast = audio_processing(sftf_param, mfccSlow_param, num_coefficients)
+mfccFast_execTime, mfccFast = audio_processing(sftf_param, mfccFast_param, num_coefficients)
 
-#assert mfccSlow.shape == mfccFast.shape, "The shape of MFCCslow != shape of MFCCfast"
-assert tf.shape(mfccSlow) == tf.shape(mfccFast), "The shape of MFCCslow != shape of MFCCfast"
+assert mfccSlow.shape == mfccFast.shape, "The shape of MFCCslow != shape of MFCCfast"
+# assert tf.shape(mfccSlow) == tf.shape(mfccFast), "The shape of MFCCslow != shape of MFCCfast"
 
-# SNR = 20 * math.log10(np.linalg.norm(mfccSlow)/np.linalg.norm(mfccSlow - mfccFast + 1e-6))
+SNR = 20 * math.log10(np.linalg.norm(mfccSlow)/np.linalg.norm(mfccSlow - mfccFast + 1e-6))
 # SNR = 20 * math.log10(np.linalg.norm(mfccSlow)/np.linalg.norm( tf.subtract(mfccSlow - mfccFast) + 1e-6))
-
-assert SNR > 10.40, "SNR is < 10.40!"
-
-assert mfccSlow_execTime - mfccFast_execTime > 18, "Attention, MFCCfast is not so fast"
 
 print(f"MFCC slow = {mfccSlow_execTime} ms")
 print(f"MFCC fast = {mfccFast_execTime} ms")
 print(f"SNR = {SNR} ms")
+
+assert SNR > 10.40, "SNR is < 10.40!"
+
+assert mfccSlow_execTime - mfccFast_execTime > 18, "Attention, MFCCfast is not so fast"
