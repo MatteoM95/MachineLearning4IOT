@@ -13,9 +13,10 @@ def audio_processing(stftParams, mfccParams, num_coefficients):
 
     frame_length = stftParams['frame_length'] * stftParams['frame_step']
 
-    for file in os.listdir("/content/yesNo_"):
+    for file in os.listdir("../datasets/yes_no"):
         start = time.time()
-        filename = os.path.join("/content/yesNo_", file)
+        filename = os.path.join("../datasets/yes_no", file)
+        #print("filename: ", filename)
 
         audio = tf.io.read_file(filename)
         tf_audio, rate = tf.audio.decode_wav(audio)
@@ -53,10 +54,10 @@ def audio_processing(stftParams, mfccParams, num_coefficients):
     return exec_time/num_file, mfccs
 
   
-#  COLAB: make folder yesNo, upload the zip and then run this code 
-!mkdir -p yesNo_
-with zipfile.ZipFile("/content/yes_no.zip", 'r') as zip_ref:
-    zip_ref.extractall("/content/yesNo_")
+##  COLAB: make folder yesNo, upload the zip and then run this code 
+#!mkdir -p yesNo_
+#with zipfile.ZipFile("/content/yes_no.zip", 'r') as zip_ref:
+#    zip_ref.extractall("/content/yesNo_")
 
 Popen('sudo sh -c "echo performance >'  
       '/sys/devices/system/cpu/cpufreq/policy0/scaling_governor"',    
