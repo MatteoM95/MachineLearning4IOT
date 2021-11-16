@@ -56,7 +56,8 @@ def main():
                         # temperature_feature = tf.train.Feature(float_list=tf.train.FloatList(value=[temperature]))
                         # humidity_feature = tf.train.Feature(float_list=tf.train.FloatList(value=[humidity]))
                         # humidity_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(humidity)]))
-                        # temperature_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[str.encode(temperature)]))
+                        # temperature_feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[
+                        # str.encode(temperature)]))
 
                     # print(type(timestamp)) #float
                     # print(type(humidity)) #float
