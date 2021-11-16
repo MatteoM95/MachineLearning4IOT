@@ -6,8 +6,8 @@ import tensorflow as tf
 from datetime import datetime
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", type=str, default="./datasets/dataset.csv",
-                    help="Input File Name. Default: ./dataset.csv")
+parser.add_argument("--input", type=str, default="./datasets/tempHumi.csv",
+                    help="Input File Name. Default: ./tempHumi.csv")
 parser.add_argument("--output", type=str, default="./th.tfrecord", help="Output File Name. Default: ./th.tfrecord")
 parser.add_argument("--normalize", action='store_true', help="Normalize Temperature? Insert --normalize")
 args = parser.parse_args()
@@ -16,10 +16,17 @@ output_filename = args.output
 input_dir = args.input
 normalize = args.normalize
 
+# sensor range temperature and humidity
+t_Min = 0
+t_Max = 50
+h_Min = 20
+h_Max = 90
+
 
 def normalize_func(temp, humi):
-    normTemp = (int(temp) - 0) / (50 - 0)
-    normHumi = (int(humi) - 20) / (90 - 20)
+    global t_Min, t_Max, h_Min, h_Max
+    normTemp = (int(temp) - t_Min) / (t_Max - t_Min)
+    normHumi = (int(humi) - h_Min) / (h_Max - h_Min)
 
     return normTemp, normHumi
 
@@ -27,7 +34,7 @@ def normalize_func(temp, humi):
 def main():
     with tf.io.TFRecordWriter(output_filename) as writer:
 
-        with open(f"{input_dir}/dataset.csv", "r") as fp:
+        with open(f"{input_dir}/tempHumi.csv", "r") as fp:
             lines = fp.readlines()
 
             for line in lines:
@@ -38,12 +45,11 @@ def main():
 
                     timestamp = datetime(int(year), int(month), int(day), int(hour), int(minutes),
                                          int(seconds)).timestamp()
-
-                    # Normalization of temperature if required
                     if normalize:
-                        # print("Normalizing...")
+                        # Normalization of temperature if required
                         temperature, humidity = normalize_func(temperature, humidity)
 
+                        # Conversion to best format for saving HDD space
                         temperature_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(temperature)]))
                         humidity_feature = tf.train.Feature(int64_list=tf.train.Int64List(value=[int(humidity)]))
                         timestamp_feature = tf.train.Feature(float_list=tf.train.FloatList(value=[timestamp]))
@@ -65,8 +71,8 @@ def main():
 
                     # best normalizzazione (timestamp - float)(temperature - int64)(humidity - int64)
 
-                    mapping = {'timestamp': timestamp_feature, \
-                               'temperature': temperature_feature, \
+                    mapping = {'timestamp': timestamp_feature,
+                               'temperature': temperature_feature,
                                'humidity': humidity_feature
                                }
                     payload = tf.train.Example(features=tf.train.Features(feature=mapping))
