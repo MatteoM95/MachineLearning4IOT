@@ -15,8 +15,6 @@ def audio_processing(filename, stftParams, mfccParams, num_coefficients, resampl
     if resample:
         input_rate, audio = wavfile.read(filename)
         sampling_ratio = input_rate / new_resample_rate
-        
-        print("sampling rate: ", sampling_ratio)
 
         audio = signal.resample_poly(audio, 1, sampling_ratio)
 
