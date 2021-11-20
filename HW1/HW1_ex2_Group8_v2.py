@@ -12,64 +12,7 @@ EARLY_STOP = False
 ITER_NUM = 50
 
 
-# def audio_processing_slow(path_dir, stftParams, mfccParams, num_coefficients):
-#     Popen('sudo sh -c "echo performance >'
-#           '/sys/devices/system/cpu/cpufreq/policy0/scaling_governor"',
-#           shell=True).wait()
-#
-#     time_results = []
-#     mfccs_results = []
-#
-#     for i, filename in enumerate(os.listdir(path_dir)):
-#         if not os.path.isdir(filename):
-#
-#             time0 = time.time()  # <<<<<<<<<<<<<<<<<<<<<<<<
-#
-#             _, audio = wavfile.read(f'{path_dir}{filename}')
-#             # tf_audio, _ = tf.audio.decode_wav(audio)
-#             # tf_audio = tf.squeeze(tf_audio, 1)
-#             tf_audio = tf.convert_to_tensor(audio, np.float32)
-#
-#             time1 = time.time()  # <<<<<<<<<<<<<<<<<<<<<<<<
-#             stft = tf.signal.stft(tf_audio,
-#                                   frame_length=stftParams['frame_length'],
-#                                   frame_step=stftParams['frame_step'],
-#                                   fft_length=stftParams['frame_length'])
-#             spectrogram = tf.abs(stft)
-#             time2 = time.time()  # <<<<<<<<<<<<<<<<<<<<<<<<
-#
-#             if i == 0:
-#                 num_spectrogram_bins = spectrogram.shape[-1]
-#                 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
-#                     num_mel_bins=mfccParams['num_mel_bins'],
-#                     num_spectrogram_bins=num_spectrogram_bins,
-#                     sample_rate=mfccParams['sampling_rate'],
-#                     lower_edge_hertz=mfccParams['lower_frequency'],
-#                     upper_edge_hertz=mfccParams['upper_frequency'])
-#
-#             mel_spectrogram = tf.tensordot(spectrogram,
-#                                            linear_to_mel_weight_matrix,
-#                                            1)
-#
-#             # mel_spectrogram.set_shape(spectrogram.shape[:-1].concatenate(linear_to_mel_weight_matrix.shape[-1:]))
-#
-#             log_mel_spectrogram = tf.math.log(mel_spectrogram + 1e-6)
-#             time3 = time.time()  # <<<<<<<<<<<<<<<<<<<<<<<<
-#
-#             mfccs = tf.signal.mfccs_from_log_mel_spectrograms(log_mel_spectrogram)[..., :num_coefficients]
-#
-#             time4 = time.time()  # <<<<<<<<<<<<<<<<<<<<<<<<
-#             time_list = [(time4 - time0), (time1 - time0), (time2 - time1), (time3 - time2), (time4 - time3)]
-#             time_results.append(time_list)
-#             mfccs_results.append(mfccs)
-#
-#             if i == ITER_NUM - 1 and EARLY_STOP:
-#                 return time_results, mfccs_results
-#
-#     return time_results, mfccs_results
-
-
-def audio_processing_fast(path_dir, stftParams, mfccParams, num_coefficients, factor=2):
+def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=1):
     Popen('sudo sh -c "echo performance >'
           '/sys/devices/system/cpu/cpufreq/policy0/scaling_governor"',
           shell=True).wait()
@@ -104,7 +47,7 @@ def audio_processing_fast(path_dir, stftParams, mfccParams, num_coefficients, fa
                     num_spectrogram_bins=num_spectrogram_bins,
                     sample_rate=int(mfccParams['sampling_rate'] / factor),
                     lower_edge_hertz=mfccParams['lower_frequency'],
-                    upper_edge_hertz=mfccParams['upper_frequency'] )
+                    upper_edge_hertz=mfccParams['upper_frequency'])
 
             mel_spectrogram = tf.tensordot(spectrogram,
                                            linear_to_mel_weight_matrix,
@@ -160,7 +103,7 @@ if __name__ == "__main__":
     mfccFast_param = {'num_mel_bins': 32,
                       'lower_frequency': 20,
                       'upper_frequency': 1000,
-                      'sampling_rate': rate * 1000 / 2 } #2000
+                      'sampling_rate': rate * 1000 / 2}  # 2000
 
     num_coefficients = 10
 
@@ -168,15 +111,9 @@ if __name__ == "__main__":
     mfccFast_execTime = 0
 
     start = time.time()
-    times_Slow, mfccSlow = audio_processing_fast(dir_path, sftf_param, mfccSlow_param, num_coefficients, 1)
+    times_Slow, mfccSlow = audio_processing(dir_path, sftf_param, mfccSlow_param, num_coefficients, 1)
     end = time.time()
-    mfccSlow_execTime += end - start
-
-    # SNR = 20 * math.log10(np.linalg.norm(mfccSlow) / np.linalg.norm(tf.subtract(mfccSlow - mfccFast) + 1e-6))
-
-    # print(f"MFCC slow = {np.mean(durationSlow) * 1000} ms")
-    # print(f"MFCC fast = {np.mean(durationFast) * 1000} ms")
-    # print(f"SNR = {SNR_mean} dB")
+    mfccSlow_execTime = end - start
 
     tags = ['reading', 'sftf', 'mel', 'mfccs']
     print("|   |--- Average execution time: ", np.mean(times_Slow, axis=0)[0] * 1000, ' ms')
@@ -190,9 +127,9 @@ if __name__ == "__main__":
     print("|")
 
     start = time.time()
-    times_Fast, mfccFast = audio_processing_fast(dir_path, sftf_param, mfccFast_param, num_coefficients, factor)
+    times_Fast, mfccFast = audio_processing(dir_path, sftf_param, mfccFast_param, num_coefficients, factor)
     end = time.time()
-    mfccFast_execTime += end - start
+    mfccFast_execTime = end - start
 
     tags = ['reading', 'sftf', 'mel', 'mfccs']
     print("|   |--- Average execution time: ", np.mean(times_Fast, axis=0)[0] * 1000, ' ms')
@@ -208,6 +145,10 @@ if __name__ == "__main__":
     print(f'|--- SNR...')
     SNR_mean = computeSNR(mfccSlow, mfccFast)
     print("|   |--- dB: ", SNR_mean)
+
+    # print(f"MFCC slow = {np.mean(durationSlow) * 1000} ms")
+    # print(f"MFCC fast = {np.mean(durationFast) * 1000} ms")
+    # print(f"SNR = {SNR_mean} dB")
 
     # assert mfccSlow.shape == mfccFast.shape, "The shape of MFCCslow != shape of MFCCfast"
     # assert SNR / num_file > 10.40, "SNR is < 10.40!"
