@@ -72,7 +72,7 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
     return time_results, mfccs_results
 
 
-def computeSNR(mfcc_list_slow, mfcc_list_fast):
+def compute_average_SNR(mfcc_list_slow, mfcc_list_fast):
     SNRs = []
 
     for mfccS, mfccF in zip(mfcc_list_slow, mfcc_list_fast):
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     mfccFast_param = {'num_mel_bins': 32,
                       'lower_frequency': 20,
                       'upper_frequency': 1000,
-                      'sampling_rate': rate * 1000 / 2}  # 2000
+                      'sampling_rate': rate * 1000 / 4}  # 2000
 
     num_coefficients = 10
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     print("|")
 
     print(f'|--- SNR...')
-    SNR_mean = computeSNR(mfccSlow, mfccFast)
+    SNR_mean = compute_average_SNR(mfccSlow, mfccFast)
     print("|   |--- dB: ", SNR_mean)
 
     # print(f"MFCC slow = {np.mean(durationSlow) * 1000} ms")
