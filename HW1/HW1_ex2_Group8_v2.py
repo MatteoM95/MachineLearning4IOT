@@ -102,9 +102,9 @@ def audio_processing_fast(path_dir, stftParams, mfccParams, num_coefficients, fa
                 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
                     num_mel_bins=mfccParams['num_mel_bins'],
                     num_spectrogram_bins=num_spectrogram_bins,
-                    sample_rate=int(mfccParams['sampling_rate']/factor),
+                    sample_rate=int(mfccParams['sampling_rate']),
                     lower_edge_hertz=mfccParams['lower_frequency'],
-                    upper_edge_hertz=int(mfccParams['upper_frequency']/factor))
+                    upper_edge_hertz=mfccParams['upper_frequency'] )
 
             mel_spectrogram = tf.tensordot(spectrogram,
                                            linear_to_mel_weight_matrix,
@@ -144,6 +144,7 @@ if __name__ == "__main__":
     # path = "/content/yesNo_"
 
     rate = 16  # [sample/min]
+    factor = 2
 
     # STFT parameters slow
     sftf_param = {'frame_length': 16 * rate,
@@ -156,17 +157,15 @@ if __name__ == "__main__":
                       'sampling_rate': rate * 1000}
 
     # MFCC_slow parameters
-    mfccFast_param = {'num_mel_bins': 40,
+    mfccFast_param = {'num_mel_bins': 32,
                       'lower_frequency': 20,
-                      'upper_frequency': 4000,
-                      'sampling_rate': rate * 1000}
+                      'upper_frequency': 1000,
+                      'sampling_rate': rate * 1000 / (factor * 2 )}
 
     num_coefficients = 10
 
     mfccSlow_execTime = 0
     mfccFast_execTime = 0
-
-    factor = 2
 
     start = time.time()
     times_Slow, mfccSlow = audio_processing_slow(dir_path, sftf_param, mfccSlow_param, num_coefficients)
