@@ -34,7 +34,7 @@ def normalize_func(temp, humi):
 def main():
     with tf.io.TFRecordWriter(output_filename) as writer:
 
-        with open(f"{input_dir}/tempHumi.csv", "r") as fp:
+        with open(f"{input_dir}/tempHumiHW1.csv", "r") as fp:
             lines = fp.readlines()
 
             for line in lines:

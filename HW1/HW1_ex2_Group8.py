@@ -72,8 +72,8 @@ sftf_param_slow = {'frame_length': 8,
                    'frame_step': 16}
 
 # STFT parameters fast
-sftf_param_fast = {'frame_length': 8,
-                   'frame_step': 16}
+sftf_param_fast = {'frame_length': 2,
+                   'frame_step': 4}
 
 # MFCC_slow parameters
 mfccSlow_param = {'num_mel_bins': 40,
@@ -82,10 +82,10 @@ mfccSlow_param = {'num_mel_bins': 40,
                   'sampling_rate': 16000}
 
 # MFCC_fast parameters
-mfccFast_param = {'num_mel_bins': 30,
-                  'lower_frequency': 200,
-                  'upper_frequency': 1500,
-                  'sampling_rate': 3000}
+mfccFast_param = {'num_mel_bins': 40,
+                  'lower_frequency': 690,
+                  'upper_frequency': 1800,
+                  'sampling_rate': 3600}
 
 num_coefficients = 10
 
@@ -101,7 +101,7 @@ for file in os.listdir(path):
     mfccSlow_execTime += end - start
 
     start = time.time()
-    mfccFast = audio_processing(os.path.join(path, file), sftf_param_fast, mfccFast_param, num_coefficients) #, True, 8000)
+    mfccFast = audio_processing(os.path.join(path, file), sftf_param_fast, mfccFast_param, num_coefficients, True, 4000)
     end = time.time()
     mfccFast_execTime += end - start
 
