@@ -144,7 +144,7 @@ if __name__ == "__main__":
     # path = "/content/yesNo_"
 
     rate = 16  # [sample/min]
-    factor = 2
+    factor = 4
 
     # STFT parameters slow
     sftf_param = {'frame_length': 16 * rate,
