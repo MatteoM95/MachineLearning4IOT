@@ -1,3 +1,4 @@
+# command line:python3 HW1_ex2_Group8.py
 import os
 import tensorflow as tf
 import time
@@ -13,7 +14,7 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
           shell=True).wait()
 
     totalTime = []
-    mfccs_results = []
+    mfccs = []
 
     for i, filename in enumerate(os.listdir(path_dir)):
         if not os.path.isdir(filename):
@@ -38,7 +39,7 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
                 print("select reading method: tf or scipy")
                 return None
 
-            # Short-time Fourier transform
+            # Convert the waveform in a spectrogram applying the STFT
             stft = tf.signal.stft(tf_audio,
                                   frame_length=int(stftParams['frame_length'] / factor),
                                   frame_step=int(stftParams['frame_step'] / factor),
@@ -46,7 +47,7 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
                                   )
             spectrogram = tf.abs(stft)
 
-            # mel spectogram
+            #  #Compute the log-scaled Mel spectrogram
             if i == 0:
                 num_spectrogram_bins = spectrogram.shape[-1]
                 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
@@ -62,15 +63,14 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
 
             log_mel_spectrogram = tf.math.log(mel_spectrogram + 1e-6)
 
-            # MFCC
-            mfccs = tf.signal.mfccs_from_log_mel_spectrograms(log_mel_spectrogram)[..., :num_coefficients]
+            #Compute the MFCC
+            mfcc = tf.signal.mfccs_from_log_mel_spectrograms(log_mel_spectrogram)[..., :num_coefficients]
 
             finish = time.time()
-            duration = finish - start
-            totalTime.append(duration)
-            mfccs_results.append(mfccs)
+            totalTime.append(finish - start)
+            mfccs.append(mfcc)
 
-    return np.mean(totalTime, axis=0), mfccs_results
+    return np.mean(totalTime, axis=0), mfccs
 
 
 def compute_average_SNR(mfcc_slow, mfcc_fast):
@@ -90,8 +90,8 @@ if __name__ == "__main__":
     factor = 2
 
     # STFT parameters
-    sftf_param = {'frame_length': 16 * rate,
-                  'frame_step': 8 * rate}
+    sftf_param = {'frame_length': 16 * rate, # rate [samples/ms] * 16 [ms]
+                  'frame_step': 8 * rate} # rate [samples/ms] * 8 [ms]
 
     # MFCC_slow parameters
     mfccSlow_param = {'num_mel_bins': 40,
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     # MFCC_fast parameters
     mfccFast_param = {'num_mel_bins': 32,
                       'lower_frequency': 20,
-                      'upper_frequency': 2000,
+                      'upper_frequency': 4000,
                       'sampling_rate': rate * 1000}
 
     num_coefficients = 10
@@ -116,6 +116,6 @@ if __name__ == "__main__":
 
     SNR_mean = compute_average_SNR(mfccSlow, mfccFast)
 
-    print(f"MFCC slow = {avg_Execution_Slow * 1000} ms")
-    print(f"MFCC fast = {avg_Execution_Fast * 1000} ms")
-    print(f"SNR = {SNR_mean} dB")
+    print(f"MFCC slow = {avg_Execution_Slow * 1000:.2f} ms")
+    print(f"MFCC fast = {avg_Execution_Fast * 1000:.2f} ms")
+    print(f"SNR = {SNR_mean:.2f} dB")
