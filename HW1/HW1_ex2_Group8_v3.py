@@ -47,7 +47,7 @@ def audio_processing(path_dir, stftParams, mfccParams, num_coefficients, factor=
                                   )
             spectrogram = tf.abs(stft)
 
-            #  #Compute the log-scaled Mel spectrogram
+            # Compute the log-scaled Mel spectrogram
             if i == 0:
                 num_spectrogram_bins = spectrogram.shape[-1]
                 linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
