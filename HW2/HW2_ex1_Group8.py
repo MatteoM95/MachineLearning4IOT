@@ -27,7 +27,7 @@ def main(args):
     else:
         label_width = 9
     num_features = 2
-    data_path = 'data'
+    dir_path = '../datasets/'
 
     # folder creation and saving dataset
     model_path = os.path.join("models", "ex1_" + version)
@@ -38,7 +38,7 @@ def main(args):
         os.makedirs(os.path.dirname(tflite_model_path))
 
     # train, test, val dataset
-    train_dataset, val_dataset, test_dataset, _ = fetch_datasets(data_path, batch_size, input_width, label_width,
+    train_dataset, val_dataset, test_dataset, _ = fetch_datasets(dir_path, batch_size, input_width, label_width,
                                                                  num_features)
 
     # options & params
@@ -86,19 +86,19 @@ def main(args):
     print('Rh MAE:', error_hum)
 
 
-def fetch_datasets(data_path,
+def fetch_datasets(dir_path,
                    batch_size=32,
                    input_width=6,
                    label_width=3,  # 3 or 9
                    num_features=2):
-    csv_path = os.path.join(data_path, "jena_climate_2009_2016.csv")
+    csv_path = os.path.join(dir_path, "jena_climate_2009_2016.csv")
 
     if not os.path.exists(csv_path):
         tf.keras.utils.get_file(
             origin="https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip",
             fname='jena_climate_2009_2016.csv.zip',
             extract=True,
-            cache_dir='.', cache_subdir='data')
+            cache_dir='.', cache_subdir='../datasets/')
 
     jena_dataframe = pd.read_csv(csv_path)
 
