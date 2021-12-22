@@ -16,7 +16,7 @@ def main(args):
     units = 8
     data_path = os.path.join('../datasets/')
     tf_dataset_path = os.path.join(data_path, "tf_datasets")
-    model_path = os.path.join("models", "ex2", args.version)
+    model_path = os.path.join("models", "ex2" + args.version)
     tflite_model_name = f"Group8_kws_{args.version}.tflite"
     tflite_model_path = os.path.join("models", "ex2_" + args.version, tflite_model_name)
     if os.path.exists(os.path.dirname(tflite_model_path)) is False:
@@ -152,7 +152,7 @@ def test_tflite(tflite_model_path, test_dataset):
 
     return accuracy / float(count)
 
-
+# save the model as tflite file
 def to_tflite(source_model_path, tflite_model_path, converter_optimisations=None, representative_dataset=None,
               supported_ops=None, compressed=False):
     converter = tf.lite.TFLiteConverter.from_saved_model(source_model_path)

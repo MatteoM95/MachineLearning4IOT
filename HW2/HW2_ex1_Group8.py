@@ -20,14 +20,21 @@ def main(args):
 
     # data and windows generator parameters
     version = args.version
+    dir_path = '../datasets/'
+
     batch_size = 32
-    input_width = 6
+    input_width = 6 # attenzione deve essere piú di 9 se addestro con version b
     if version == 'a':
-        label_width = 3
+        label_width = 6
     else:
         label_width = 9
     num_features = 2
-    dir_path = '../datasets/'
+
+    # options & params
+    model_type = 'mlp'  # cnn or mlp
+    width_scaling = 0.1
+    pruning_final_sparsity = 0.85
+    epochs = 2  # 20
 
     # folder creation and saving dataset
     model_path = os.path.join("models", "ex1_" + version)
@@ -41,11 +48,7 @@ def main(args):
     train_dataset, val_dataset, test_dataset, _ = fetch_datasets(dir_path, batch_size, input_width, label_width,
                                                                  num_features)
 
-    # options & params
-    model_type = 'mlp'  # cnn or mlp
-    width_scaling = 0.1
-    pruning_final_sparsity = 0.85
-    epochs = 2  # 20
+
 
     model = build_model(model_type, num_features=num_features, label_width=label_width, width_scaling=width_scaling)
 
@@ -166,8 +169,8 @@ class WindowGenerator:
     def split_window(self, features):
         # features -> set of sequences made of input_width + label_width values each. [#batch, (input+label)_width, 2]
 
-        inputs = features[:, : -self.input_width, :]
-        labels = features[:, -self.label_width:, :]
+        inputs = features[:, : self.input_width, :]
+        labels = features[:, self.label_width:, :]
 
         inputs.set_shape([None, self.input_width, self.num_features])
         labels.set_shape([None, self.label_width, self.num_features])
@@ -188,16 +191,15 @@ class WindowGenerator:
     def make_dataset(self, data, train=True):
         # Creates a dataset of sliding windows over a timeseries provided as array
         dataset = tf.keras.preprocessing.timeseries_dataset_from_array(
-            data=data,  # consecutive data points
-            targets=None,  # None -> the dataset will only yield the input data
-            sequence_length=self.input_width + self.label_width,  # Length of the output sequences
-            sequence_stride=1,  # Period between successive output sequences
-            batch_size=self.batch_size)  # Number of timeseries samples in each batch
+                data=data,  # consecutive data points
+                targets=None,  # None -> the dataset will only yield the input data
+                sequence_length=self.input_width + self.label_width,  # Length of the output sequences
+                sequence_stride=1,  # Period between successive output sequences
+                batch_size=self.batch_size)  # Number of timeseries samples in each batch
 
         # from each set of sequences it splits data to get input and labels and then normalize
         dataset = dataset.map(self.preprocess)
-
-        dataset = dataset.cache()
+        dataset = dataset.cache() #.repeat(self.label_width)
         if train is True:
             dataset = dataset.shuffle(100, reshuffle_each_iteration=True)
 
@@ -226,7 +228,7 @@ class MultiOutputMAE(tf.keras.metrics.Metric):
         result = tf.math.divide_no_nan(self.total, self.count)
         return result
 
-
+# save the model as tflite file
 def to_tflite(source_model_path, tflite_model_path, converter_optimisations=None, compressed=False):
     converter = tf.lite.TFLiteConverter.from_saved_model(source_model_path)
 
@@ -249,7 +251,7 @@ def to_tflite(source_model_path, tflite_model_path, converter_optimisations=None
 
     return os.path.getsize(tflite_model_path) / 1024
 
-
+# test error MAE on temperature and humidity
 def test_tflite(tflite_model_path, test_dataset):
     interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
     interpreter.allocate_tensors()
@@ -274,7 +276,8 @@ def test_tflite(tflite_model_path, test_dataset):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', '-v', type=str, choices=['a', 'b'], required=True,
+    parser.add_argument('--version', '-v', type=str,
+                        choices=['a', 'b'], required=True,
                         help='Model version to build: a or b')
     args = parser.parse_args()
     main(args)
