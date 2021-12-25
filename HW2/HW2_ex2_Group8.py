@@ -1,4 +1,6 @@
 # command line: python3 HW2_ex2_Group8.py -v a
+# latency calculation:  B) python3 kws_latency.py --mfcc --model ./models/ex2_b/Group8_kws_b.tflite
+#                       C) python3 kws_latency.py --mfcc --model ./models/ex2_c/Group8_kws_c.tflite
 import argparse
 import os
 import numpy as np
@@ -70,7 +72,7 @@ class SignalGenerator:
         audio = self.pad(audio)
         spectrogram = self.get_spectrogram(audio)
         spectrogram = tf.expand_dims(spectrogram, -1)
-        spectrogram = tf.image.resize(spectrogram, [56, 56])
+        spectrogram = tf.image.resize(spectrogram, [32, 32])
 
         return spectrogram, label
 
@@ -332,10 +334,10 @@ def main(args):
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                              'num_coefficients': 10}
-        final_sparsity = 0.8
+        final_sparsity = 0.7
         epochs = 30
         learning_rate = 0.01
-        alpha = 0.5
+        alpha = 0.6
         model_name = 'model_a'
 
         def scheduler(epoch, lr):
@@ -350,18 +352,16 @@ def main(args):
                                              restore_best_weights=True)
         ]
 
-
-
     elif version == 'b':
         sampling_rate = 16000
         use_mfccs = True
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                              'num_coefficients': 10}
-        final_sparsity = None
+        final_sparsity = 0.9
         epochs = 30
         learning_rate = 0.02
-        alpha = 0.3
+        alpha = 0.5
         model_name = 'model_b'
 
         def scheduler(epoch, lr):
@@ -376,22 +376,21 @@ def main(args):
                                              restore_best_weights=True)
         ]
 
-
-
     elif version == 'c':
-        sampling_rate = 16000
         # version with stft
-        use_mfccs = False
-        signal_parameters = {'frame_length': 256, 'frame_step': 128, 'mfcc': False}
-
-        final_sparsity = None
+        sampling_rate = 16000
+        use_mfccs = True
+        signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
+                             'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
+                             'num_coefficients': 10}
+        final_sparsity = 0.9
         epochs = 30
         learning_rate = 0.02
-        alpha = 0.3
+        alpha = 0.5
         model_name = 'model_c'
 
         def scheduler(epoch, lr):
-            if epoch == 20 or epoch == 30:
+            if epoch == 20 or epoch == 25:
                 return lr * 0.1
             else:
                 return lr
@@ -411,8 +410,6 @@ def main(args):
     output_shape = 8
     print(f'Input shape: {input_shape}')
 
-
-
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     loss_function = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     eval_metric = tf.keras.metrics.SparseCategoricalAccuracy()
@@ -421,10 +418,10 @@ def main(args):
     model.compile_model(train_dataset, optimizer, loss_function, eval_metric)
     model.train_model(train_dataset, val_dataset, epochs, callbacks=callbacks)
     # magnitude based pruning
-    if version == 'c':
+    if version == 'c' or version == 'b':
         tflite_model_size = model.prune_model(tflite_model_path, compressed=True, weights_only=True)
     elif version == 'a':
-        tflite_model_size = model.prune_model(tflite_model_path, compressed=False,  weights_only=True)
+        tflite_model_size = model.prune_model(tflite_model_path, compressed=False, weights_only=True)
 
     print(f"tflite size: {round(tflite_model_size, 3)} KB", )
 
