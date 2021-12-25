@@ -318,7 +318,7 @@ def main(args):
 
     version = args.version.lower()
     print("Training version: ", version)
-    dir_path = '../datasets/'
+    dir_path = 'data'
 
     tf_dataset_path = os.path.join(dir_path, "tf_datasets")
     model_path = os.path.join("models", "ex2" + version)
@@ -407,6 +407,7 @@ def main(args):
     for x, y in train_dataset:
         input_shape = x.shape.as_list()[1:]
         break
+
     output_shape = 8
     print(f'Input shape: {input_shape}')
 
@@ -431,12 +432,14 @@ def main(args):
 
 def make_tf_datasets(dir_path, sampling_rate=16000, **signal_parameters):
     dataset_path = os.path.join(dir_path, "mini_speech_commands")
+    print(dataset_path)
 
-    zip_path = tf.keras.utils.get_file(
-        origin="http://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
-        fname='mini_speech_commands.zip',
-        extract=True,
-        cache_dir='.', cache_subdir='../datasets/')
+    if not os.path.exists(dataset_path):
+        tf.keras.utils.get_file(
+            origin="http://storage.googleapis.com/download.tensorflow.org/data/mini_speech_commands.zip",
+            fname='mini_speech_commands.zip',
+            extract=True,
+            cache_dir='.', cache_subdir='data')
 
     train_files = open('kws_train_split.txt', 'r').read().splitlines()
     val_files = open('kws_val_split.txt', 'r').read().splitlines()
