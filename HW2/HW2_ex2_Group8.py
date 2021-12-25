@@ -97,14 +97,14 @@ class SignalGenerator:
 
 
 class MyModel:
-    def __init__(self, model_name, alpha, input_shape, output_shape, version, final_sparsity=None):
+    def __init__(self, model_name, alpha, input_shape, output_shape, version, final_sparsity=None, use_mfccs=False):
 
-        if model_name == 'ds-cnn':
-            if use_mfccs:
-                strides = [2, 1]
-            else:
-                strides = [2, 2]
+        if use_mfccs:
+            strides = [2, 1]
+        else:
+            strides = [2, 2]
 
+        if model_name == 'model_a':
             model = tf.keras.Sequential([tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(256 * alpha),
                                                                 kernel_size=[3, 3], strides=strides, use_bias=False,
                                                                 name='first_conv1d'),
@@ -126,6 +126,53 @@ class MyModel:
                                          tf.keras.layers.ReLU(),
                                          tf.keras.layers.GlobalAvgPool2D(),
                                          tf.keras.layers.Dense(output_shape, name='fc')])
+
+        elif model_name == 'model_b':
+            model = tf.keras.Sequential([tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(256 * alpha),
+                                                                kernel_size=[3, 3], strides=strides, use_bias=False,
+                                                                name='first_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.DepthwiseConv2D(kernel_size=[3, 3], strides=[1, 1],
+                                                                         use_bias=False),
+                                         tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(256 * alpha),
+                                                                kernel_size=[1, 1], strides=[1, 1], use_bias=False,
+                                                                name='second_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.DepthwiseConv2D(kernel_size=[3, 3], strides=[1, 1],
+                                                                         use_bias=False, ),
+                                         tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(alpha * 256),
+                                                                kernel_size=[1, 1], strides=[1, 1], use_bias=False,
+                                                                name='third_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.GlobalAvgPool2D(),
+                                         tf.keras.layers.Dense(output_shape, name='fc')])
+        elif model_name == 'model_c':
+            model = tf.keras.Sequential([tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(256 * alpha),
+                                                                kernel_size=[3, 3], strides=strides, use_bias=False,
+                                                                name='first_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.DepthwiseConv2D(kernel_size=[3, 3], strides=[1, 1],
+                                                                         use_bias=False),
+                                         tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(256 * alpha),
+                                                                kernel_size=[1, 1], strides=[1, 1], use_bias=False,
+                                                                name='second_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.DepthwiseConv2D(kernel_size=[3, 3], strides=[1, 1],
+                                                                         use_bias=False, ),
+                                         tf.keras.layers.Conv2D(input_shape=input_shape, filters=int(alpha * 128),
+                                                                kernel_size=[1, 1], strides=[1, 1], use_bias=False,
+                                                                name='third_conv1d'),
+                                         tf.keras.layers.BatchNormalization(momentum=0.1),
+                                         tf.keras.layers.ReLU(),
+                                         tf.keras.layers.GlobalAvgPool2D(),
+                                         tf.keras.layers.Dense(output_shape, name='fc')])
+        else:
+            print("Model name not existing")
 
         self.model = model
         self.alpha = alpha
@@ -169,7 +216,7 @@ class MyModel:
             metrics=eval_metric
         )
 
-    def train_model(self, X_train, X_val, N_EPOCH, callbacks=[]):
+    def train_model(self, train_dataset, val_dataset, epochs, callbacks=[]):
 
         if self.magnitude_pruning:
             callbacks.append(tfmot.sparsity.keras.UpdatePruningStep())
@@ -178,28 +225,44 @@ class MyModel:
         print('\t', end='')
 
         history = self.model.fit(
-            X_train,
-            epochs=N_EPOCH,
-            validation_data=X_val,
+            train_dataset,
+            epochs=epochs,
+            validation_data=val_dataset,
             verbose=1,
             callbacks=callbacks,
         )
 
         return history
 
-    def prune_model(self):
+    def prune_model(self, tflite_model_path, compressed=False, weights_only=True):
 
         self.model = tfmot.sparsity.keras.strip_pruning(self.model)
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
-        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        # convert to tflite and save it
+        converter_optimisations = [tf.lite.Optimize.DEFAULT]
 
+        if weights_only:
+            converter.optimizations = converter_optimisations
+            converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
         tflite_model = converter.convert()
-        with open(f'./Group10_kws_{self.version}.tflite.zlib', 'wb') as fp:
-            tflite_compressed = zlib.compress(tflite_model)
-            fp.write(tflite_compressed)
 
-    def convert_to(self):
+        if not os.path.exists(os.path.dirname(tflite_model_path)):
+            os.makedirs(os.path.dirname(tflite_model_path))
+
+        with open(tflite_model_path, 'wb') as fp:
+            fp.write(tflite_model)
+
+        if compressed:
+            compressed_tflite_model_path = tflite_model_path + ".zlib"
+            with open(compressed_tflite_model_path, 'wb') as fp:
+                compressed_tflite_model = zlib.compress(tflite_model, level=9)
+                fp.write(compressed_tflite_model)
+            return os.path.getsize(compressed_tflite_model_path) / 1024
+
+        return os.path.getsize(tflite_model_path) / 1024
+
+    def convert_to(self, tflite_model_path, compressed=False):
 
         # --------- with tflite quantization weight only
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
@@ -207,8 +270,43 @@ class MyModel:
         # convert the model into a tflite version
         tflite_model = converter.convert()
 
-        with open(f'./Group10_kws_{self.version}.tflite', 'wb') as fp:
+        if not os.path.exists(os.path.dirname(tflite_model_path)):
+            os.makedirs(os.path.dirname(tflite_model_path))
+
+        with open(tflite_model_path, 'wb') as fp:
             fp.write(tflite_model)
+
+        if compressed:
+            compressed_tflite_model_path = tflite_model_path + ".zlib"
+            with open(compressed_tflite_model_path, 'wb') as fp:
+                compressed_tflite_model = zlib.compress(tflite_model, level=9)
+                fp.write(compressed_tflite_model)
+            return os.path.getsize(compressed_tflite_model_path) / 1024
+
+        return os.path.getsize(tflite_model_path) / 1024
+        # with open(f'./Group8_kws_{self.version}.tflite', 'wb') as fp:
+        #     fp.write(tflite_model)
+
+    # test accuracy of the model
+    def test_tflite(self, tflite_model_path, test_dataset):
+        interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
+        interpreter.allocate_tensors()
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+
+        accuracy, count = 0, 0
+        test_dataset = test_dataset.unbatch().batch(1)
+        for features, labels in test_dataset:
+            interpreter.set_tensor(input_details[0]['index'], features)
+            interpreter.invoke()
+            prediction = interpreter.get_tensor(output_details[0]['index'])
+            prediction = prediction.squeeze()
+            prediction = np.argmax(prediction)
+            labels = labels.numpy().squeeze()
+            accuracy += prediction == labels
+            count += 1
+
+        return accuracy / float(count)
 
 
 def main(args):
@@ -217,6 +315,7 @@ def main(args):
     np.random.seed(seed)
 
     version = args.version.lower()
+    print("Training version: ", version)
     dir_path = '../datasets/'
 
     tf_dataset_path = os.path.join(dir_path, "tf_datasets")
@@ -227,44 +326,58 @@ def main(args):
     if os.path.exists(os.path.dirname(tflite_model_path)) is False:
         os.makedirs(os.path.dirname(tflite_model_path))
 
-    def scheduler(epoch, lr):
-        if epoch == 20 or epoch == 25:
-            return lr * 0.1
-        else:
-            return lr
-
     if version == 'a':
         sampling_rate = 16000
         use_mfccs = True
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
-                   'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
-                   'num_coefficients': 10}
-        final_sparsity = 0.9
+                             'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
+                             'num_coefficients': 10}
+        final_sparsity = 0.8
         epochs = 30
-        LR = 0.02
-        alpha = 0.75
-        model_name = 'ds-cnn'
+        learning_rate = 0.01
+        alpha = 0.5
+        model_name = 'model_a'
+
+        def scheduler(epoch, lr):
+            if epoch == 20 or epoch == 25:
+                return lr * 0.1
+            else:
+                return lr
+
         callbacks = [
             tf.keras.callbacks.LearningRateScheduler(schedule=scheduler),
             tf.keras.callbacks.EarlyStopping(monitor='val_sparse_categorical_accuracy', patience=30,
                                              restore_best_weights=True)
         ]
+
+
+
     elif version == 'b':
         sampling_rate = 16000
         use_mfccs = True
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
-                   'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
-                   'num_coefficients': 10}
+                             'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
+                             'num_coefficients': 10}
         final_sparsity = None
         epochs = 30
-        LR = 0.02
+        learning_rate = 0.02
         alpha = 0.3
-        model_name = 'ds-cnn'
+        model_name = 'model_b'
+
+        def scheduler(epoch, lr):
+            if epoch == 20 or epoch == 25:
+                return lr * 0.1
+            else:
+                return lr
+
         callbacks = [
             tf.keras.callbacks.LearningRateScheduler(schedule=scheduler),
             tf.keras.callbacks.EarlyStopping(monitor='val_sparse_categorical_accuracy', patience=30,
                                              restore_best_weights=True)
         ]
+
+
+
     elif version == 'c':
         sampling_rate = 16000
         # version with stft
@@ -273,38 +386,50 @@ def main(args):
 
         final_sparsity = None
         epochs = 30
-        LR = 0.02
+        learning_rate = 0.02
         alpha = 0.3
-        model_name = 'ds-cnn'
+        model_name = 'model_c'
+
+        def scheduler(epoch, lr):
+            if epoch == 20 or epoch == 30:
+                return lr * 0.1
+            else:
+                return lr
+
         callbacks = [
             tf.keras.callbacks.LearningRateScheduler(schedule=scheduler),
             tf.keras.callbacks.EarlyStopping(monitor='val_sparse_categorical_accuracy', patience=30,
                                              restore_best_weights=True)
         ]
 
-    train_dataset, val_dataset, test_dataset = make_tf_datasets(dir_path, sampling_rate=sampling_rate, **signal_parameters)
+    train_dataset, val_dataset, test_dataset = make_tf_datasets(dir_path, sampling_rate=sampling_rate,
+                                                                **signal_parameters)
 
     for x, y in train_dataset:
         input_shape = x.shape.as_list()[1:]
-        output_shape = y.shape.as_list()[1:]
         break
-
+    output_shape = 8
     print(f'Input shape: {input_shape}')
 
-    output_shape = 8
 
-    optimizer = tf.keras.optimizers.Adam(learning_rate=LR)
+
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     loss_function = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     eval_metric = tf.keras.metrics.SparseCategoricalAccuracy()
 
-    model = MyModel(model_name, alpha, input_shape, output_shape, version, final_sparsity)
+    model = MyModel(model_name, alpha, input_shape, output_shape, version, final_sparsity, use_mfccs)
     model.compile_model(train_dataset, optimizer, loss_function, eval_metric)
     model.train_model(train_dataset, val_dataset, epochs, callbacks=callbacks)
     # magnitude based pruning
-    if version == 'a':
-        model.prune_model()
-    else:
-        model.convert_to()
+    if version == 'c':
+        tflite_model_size = model.prune_model(tflite_model_path, compressed=True, weights_only=True)
+    elif version == 'a':
+        tflite_model_size = model.prune_model(tflite_model_path, compressed=False,  weights_only=True)
+
+    print(f"tflite size: {round(tflite_model_size, 3)} KB", )
+
+    tflite_performance = model.test_tflite(tflite_model_path, test_dataset)
+    print("tflite performance: ", tflite_performance)
 
 
 def make_tf_datasets(dir_path, sampling_rate=16000, **signal_parameters):
@@ -342,4 +467,3 @@ if __name__ == '__main__':
                         help='Model version to build: a - b -c')
     args = parser.parse_args()
     main(args)
-
