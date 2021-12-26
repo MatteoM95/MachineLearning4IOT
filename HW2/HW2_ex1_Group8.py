@@ -11,7 +11,6 @@ import zlib
 # Make sure we don't get any GPU errors
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-
 # physical_devices = tf.config.list_physical_devices("GPU")
 # tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
@@ -92,7 +91,7 @@ class MyModel:
     def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, label_width=3, num_features=2):
 
         if model_name.lower() == 'model_a':
-            input_shape = (6, 2)
+            input_shape = [6, 2]
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(input_shape=input_shape),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
@@ -101,19 +100,21 @@ class MyModel:
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
 
-            # model = keras.Sequential(
-            #     [keras.layers.Conv1D(filters=int(64*alpha), kernel_size=3, input_shape=input_shape),
-            #      keras.layers.ReLU(),
-            #      keras.layers.Flatten(),
-            #      keras.layers.Dense(units=int(64*alpha), activation='relu'),
-            #      keras.layers.Dense(units=label_width * num_features),
-            #      keras.layers.Reshape([6, 2])])
+            # model = keras.Sequential([
+            #     keras.layers.Conv1D(input_shape=input_shape, filters=int(64 * alpha), kernel_size=3),
+            #     keras.layers.ReLU(),
+            #     keras.layers.Flatten(),
+            #     # keras.layers.Dense(units=int(64 * alpha)),
+            #     # keras.layers.ReLU(),
+            #     keras.layers.Dense(units=label_width * num_features),
+            #     keras.layers.Reshape([label_width, num_features])
+            # ])
 
         elif model_name.lower() == 'model_b':
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
-                #tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
+                tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
                 tf.keras.layers.Dense(units=label_width * num_features),
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
@@ -252,11 +253,11 @@ def main(args):
         label_width = 3
         num_features = 2
 
-        epochs = 100  # 20
-        alpha = 0.2
-        learning_rate = 0.1
-        batch_size = 512
-        pruning_final_sparsity = 0.93
+        epochs = 100  # 100
+        alpha = 0.2 # 0.2
+        learning_rate = 0.1 # 0.1
+        batch_size = 512 # 512
+        pruning_final_sparsity = 0.93 # 0.93
 
         MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 
@@ -274,7 +275,7 @@ def main(args):
         num_features = 2
 
         epochs = 50  # 20
-        alpha = 0.2
+        alpha = 0.1
         learning_rate = 0.01
         batch_size = 512
         pruning_final_sparsity = 0.9

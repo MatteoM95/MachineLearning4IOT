@@ -242,7 +242,9 @@ class MyModel:
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
         # convert to tflite and save it
-        converter_optimisations = [tf.lite.Optimize.DEFAULT]
+        converter_optimisations = [tf.lite.Optimize.DEFAULT,
+                                   tf.lite.Optimize.OPTIMIZE_FOR_SIZE
+                                   ]
 
         if weights_only:
             converter.optimizations = converter_optimisations
