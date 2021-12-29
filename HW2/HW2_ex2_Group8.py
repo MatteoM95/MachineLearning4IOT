@@ -243,7 +243,7 @@ class MyModel:
 
         # convert to tflite and save it
         converter_optimisations = [tf.lite.Optimize.DEFAULT,
-                                   tf.lite.Optimize.OPTIMIZE_FOR_SIZE
+                                   # tf.lite.Optimize.OPTIMIZE_FOR_SIZE
                                    ]
 
         if weights_only:
@@ -342,9 +342,11 @@ def main(args):
         alpha = 0.6
         model_name = 'model_a'
 
+        MILESTONE = [5, 10, 15, 20, 25]
+
         def scheduler(epoch, lr):
-            if epoch == 20 or epoch == 25:
-                return lr * 0.1
+            if epoch in MILESTONE:
+                return lr * 0.5
             else:
                 return lr
 
@@ -362,13 +364,15 @@ def main(args):
                              'num_coefficients': 10}
         final_sparsity = 0.9
         epochs = 30
-        learning_rate = 0.02
+        learning_rate = 0.03
         alpha = 0.5
         model_name = 'model_b'
 
+        MILESTONE = [10, 20]
+
         def scheduler(epoch, lr):
-            if epoch == 20 or epoch == 25:
-                return lr * 0.1
+            if epoch in MILESTONE:
+                return lr * 0.17
             else:
                 return lr
 
@@ -391,9 +395,11 @@ def main(args):
         alpha = 0.5
         model_name = 'model_c'
 
+        MILESTONE = [10, 20]
+
         def scheduler(epoch, lr):
-            if epoch == 20 or epoch == 25:
-                return lr * 0.1
+            if epoch in MILESTONE:
+                return lr * 0.2
             else:
                 return lr
 

@@ -92,6 +92,8 @@ class MyModel:
 
         if model_name.lower() == 'model_a':
             input_shape = [6, 2]
+
+            #MLP model
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(input_shape=input_shape),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
@@ -100,6 +102,7 @@ class MyModel:
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
 
+            #CNN model
             # model = keras.Sequential([
             #     keras.layers.Conv1D(input_shape=input_shape, filters=int(64 * alpha), kernel_size=3),
             #     keras.layers.ReLU(),
@@ -107,6 +110,14 @@ class MyModel:
             #     # keras.layers.Dense(units=int(64 * alpha)),
             #     # keras.layers.ReLU(),
             #     keras.layers.Dense(units=label_width * num_features),
+            #     keras.layers.Reshape([label_width, num_features])
+            # ])
+
+            #LSTM model
+            # model = keras.Sequential([
+            #     keras.layers.LSTM(units=int(64 * alpha)),
+            #     keras.layers.Flatten(),
+            #     keras.layers.Dense(label_width * num_features),
             #     keras.layers.Reshape([label_width, num_features])
             # ])
 
@@ -179,18 +190,18 @@ class MyModel:
     def evaluate_model(self, test_dataset, return_dict=False):
         return self.model.evaluate(test_dataset, return_dict=return_dict)
 
+    # After pruning convert the model to tflite and save it
     def prune_model(self, tflite_model_path, compressed=False, weights_only=True):
 
         self.model = tfmot.sparsity.keras.strip_pruning(self.model)
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
-        # convert to tflite and save it
         converter_optimisations = [tf.lite.Optimize.DEFAULT,  # Enables quantization at conversion.
-                                   tf.lite.Optimize.OPTIMIZE_FOR_SIZE  # Enables size reduction optimization.
+                                   # tf.lite.Optimize.OPTIMIZE_FOR_SIZE  # Enables size reduction optimization.
                                    ]
         if weights_only:
             converter.optimizations = converter_optimisations
-            converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
+            converter.target_spec.supported_types = [tf.int8]  # post training quantization to float16 on the weights
         tflite_model = converter.convert()
 
         if not os.path.exists(os.path.dirname(tflite_model_path)):
