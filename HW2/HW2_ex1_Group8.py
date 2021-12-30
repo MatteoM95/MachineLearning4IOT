@@ -279,7 +279,7 @@ def main(args):
     else:
         model_name = 'model_b'
 
-        input_width = 20  # attenzione deve essere piú di 9 se addestro con version b
+        input_width = 16  # attenzione deve essere piú di 9 se addestro con version b
         label_width = 9
         num_features = 2
 
