@@ -91,10 +91,11 @@ class MyModel:
     def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, input_width = 6, label_width=3, num_features=2):
 
         if model_name.lower() == 'model_a':
+            input_shape = [6, 2]
 
             #MLP model
             model = tf.keras.Sequential([
-                tf.keras.layers.Flatten(),
+                tf.keras.layers.Flatten(input_shape=input_shape),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
                 # tf.keras.layers.Dense(units=int(128*alpha), activation='relu'),
                 tf.keras.layers.Dense(units=label_width * num_features),
@@ -262,7 +263,7 @@ def main(args):
         label_width = 3
         num_features = 2
 
-        epochs = 100  # 100
+        epochs = 100 # 100
         alpha = 0.2 # 0.2
         learning_rate = 0.1 # 0.1
         batch_size = 512 # 512
@@ -283,7 +284,7 @@ def main(args):
         label_width = 9
         num_features = 2
 
-        epochs = 50  # 20
+        epochs = 20  # 20
         alpha = 0.1
         learning_rate = 0.01
         batch_size = 512
