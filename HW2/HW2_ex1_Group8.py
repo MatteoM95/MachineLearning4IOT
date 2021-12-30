@@ -263,10 +263,10 @@ def main(args):
         label_width = 3
         num_features = 2
 
-        epochs = 70 # 100
+        epochs = 80 # 100
         alpha = 0.2 # 0.2
         learning_rate = 0.1 # 0.1
-        batch_size = 256 # 512
+        batch_size = 512 # 512
         pruning_final_sparsity = 0.93 # 0.93
 
         MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
