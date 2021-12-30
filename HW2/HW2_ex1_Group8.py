@@ -91,7 +91,7 @@ class MyModel:
     def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, input_width = 6, label_width=3, num_features=2):
 
         if model_name.lower() == 'model_a':
-            input_shape = [6, 2]
+            input_shape = [input_width, num_features]
 
             #MLP model
             model = tf.keras.Sequential([
@@ -259,15 +259,15 @@ def main(args):
     if version == 'a':
         model_name = 'model_a'
 
-        input_width = 6
+        input_width = 10
         label_width = 3
         num_features = 2
 
-        epochs = 100 # 100
+        epochs = 40 # 100
         alpha = 0.2 # 0.2
         learning_rate = 0.1 # 0.1
-        batch_size = 512 # 512
-        pruning_final_sparsity = 0.93 # 0.93
+        batch_size = 256 # 512
+        pruning_final_sparsity = 0.94 # 0.93
 
         MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
 
