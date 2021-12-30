@@ -1,1 +1,1 @@
-['stop', 'up', 'yes', 'right', 'left', 'no', 'silence', 'down', 'go']
+['stop', 'up', 'yes', 'right', 'left', 'no', 'down', 'go']

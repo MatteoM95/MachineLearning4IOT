@@ -88,7 +88,7 @@ class MultiOutputMAE(tf.keras.metrics.Metric):
 
 
 class MyModel:
-    def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, label_width=3, num_features=2):
+    def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, input_width = 6, label_width=3, num_features=2):
 
         if model_name.lower() == 'model_a':
 
@@ -133,6 +133,7 @@ class MyModel:
         self.alpha = alpha
         self.batch_size = batch_size
         self.final_sparsity = final_sparsity
+        self.input_width = input_width
         self.model_name = model_name.lower()
         self.version = version.lower()
         if alpha != 1:
@@ -142,8 +143,6 @@ class MyModel:
             self.magnitude_pruning = True
         else:
             self.magnitude_pruning = False
-
-        self.final_sparsity = final_sparsity
 
     def compile_model(self, optimizer, loss_function, eval_metric, train_ds):
 
@@ -160,7 +159,7 @@ class MyModel:
             prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
             self.model = prune_low_magnitude(self.model, **pruning_params)
 
-            input_shape = [self.batch_size, 6, 2]
+            input_shape = [self.batch_size, self.input_width, 2]
             self.model.build(input_shape)
             self.model.summary()             # model info
 
@@ -280,7 +279,7 @@ def main(args):
     else:
         model_name = 'model_b'
 
-        input_width = 6  # attenzione deve essere piú di 9 se addestro con version b
+        input_width = 20  # attenzione deve essere piú di 9 se addestro con version b
         label_width = 9
         num_features = 2
 
@@ -290,8 +289,16 @@ def main(args):
         batch_size = 512
         pruning_final_sparsity = 0.9
 
+        # def scheduler(epoch, lr):
+        #     return lr
+
+        MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+
         def scheduler(epoch, lr):
-            return lr
+            if epoch in MILESTONE:
+                return lr * 0.5
+            else:
+                return lr
 
     # folder creation and saving dataset
     model_path = os.path.join("models", "ex1_" + version)
@@ -309,7 +316,7 @@ def main(args):
     loss_function = [tf.keras.losses.MeanSquaredError()]
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
-    model = MyModel(model_name, alpha, version, batch_size, pruning_final_sparsity, label_width, num_features)
+    model = MyModel(model_name, alpha, version, batch_size, pruning_final_sparsity, input_width, label_width, num_features)
     model.compile_model(optimizer, loss_function, eval_metric, train_dataset)
     model.train_model(train_dataset, val_dataset, epochs,
                       callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
