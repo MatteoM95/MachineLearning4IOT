@@ -91,11 +91,10 @@ class MyModel:
     def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, label_width=3, num_features=2):
 
         if model_name.lower() == 'model_a':
-            input_shape = [6, 2]
 
             #MLP model
             model = tf.keras.Sequential([
-                tf.keras.layers.Flatten(input_shape=input_shape),
+                tf.keras.layers.Flatten(),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
                 # tf.keras.layers.Dense(units=int(128*alpha), activation='relu'),
                 tf.keras.layers.Dense(units=label_width * num_features),
@@ -163,7 +162,7 @@ class MyModel:
 
             input_shape = [self.batch_size, 6, 2]
             self.model.build(input_shape)
-            self.model.summary() # model info
+            self.model.summary()             # model info
 
         self.model.compile(
             optimizer=optimizer,
@@ -201,7 +200,7 @@ class MyModel:
                                    ]
         if weights_only:
             converter.optimizations = converter_optimisations
-            converter.target_spec.supported_types = [tf.int8]  # post training quantization to float16 on the weights
+            converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
         tflite_model = converter.convert()
 
         if not os.path.exists(os.path.dirname(tflite_model_path)):
