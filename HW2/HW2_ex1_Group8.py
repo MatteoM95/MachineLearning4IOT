@@ -163,7 +163,7 @@ class MyModel:
 
             input_shape = [self.batch_size, 6, 2]
             self.model.build(input_shape)
-            self.model.summary()
+            self.model.summary() # model info
 
         self.model.compile(
             optimizer=optimizer,

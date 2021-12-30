@@ -210,7 +210,7 @@ class MyModel:
 
             input_shape = [32] + self.input_shape
             self.model.build(input_shape)
-            self.model.summary()
+            self.model.summary() # model info
 
         self.model.compile(
             optimizer=optimizer,
