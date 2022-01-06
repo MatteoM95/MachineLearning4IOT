@@ -1,6 +1,6 @@
 # command line: python3 HW2_ex2_Group8.py -v a
-# latency calculation:  B) python3 kws_latency.py --mfcc --model ./models/ex2_b/Group8_kws_b.tflite --bins 32
-#                       C) python3 kws_latency.py --model ./models/ex2_c/Group8_kws_c.tflite --length 256 --stride 128
+# latency calculation:  B) python3 kws_latency.py --mfcc --model ./models/ex2_b/Group8_kws_b.tflite --length 480
+#                       C) python3 kws_latency.py --mfcc --model ./models/ex2_c/Group8_kws_c.tflite --length 480
 import argparse
 import os
 import numpy as np
@@ -382,7 +382,7 @@ def main(args):
         sampling_rate = 16000
         use_mfccs = True
         signal_parameters = { 'frame_length': 480, 'frame_step': 320, 'mfcc': True,
-                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 32,
+                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                               'num_coefficients': 10}
         final_sparsity = 0.7
         epochs = 30
