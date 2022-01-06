@@ -1,6 +1,6 @@
 # command line: python3 HW2_ex2_Group8.py -v a
-# latency calculation:  B) python3 kws_latency.py --mfcc --model ./models/ex2_b/Group8_kws_b.tflite
-#                       C) python3 kws_latency.py --mfcc --model ./models/ex2_c/Group8_kws_c.tflite
+# latency calculation:  B) python3 kws_latency.py --mfcc --model ./models/ex2_b/Group8_kws_b.tflite --bins 32
+#                       C) python3 kws_latency.py --model ./models/ex2_c/Group8_kws_c.tflite --length 256 --stride 128
 import argparse
 import os
 import numpy as np
@@ -330,22 +330,20 @@ def main(args):
     if os.path.exists(os.path.dirname(tflite_model_path)) is False:
         os.makedirs(os.path.dirname(tflite_model_path))
 
-    if version == 'a':
+    if version == 'a': #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         sampling_rate = 16000
         use_mfccs = True
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                              'num_coefficients': 10}
-        final_sparsity = 0.7
+        final_sparsity = 0.6
         epochs = 30
         learning_rate = 0.01
         alpha = 0.6
         model_name = 'model_a'
 
-        MILESTONE = [5, 10, 15, 20, 25]
-
         def scheduler(epoch, lr):
-            if epoch in MILESTONE:
+            if epoch % 5 == 0:
                 return lr * 0.5
             else:
                 return lr
@@ -356,22 +354,20 @@ def main(args):
                                              restore_best_weights=True)
         ]
 
-    elif version == 'b':
+    elif version == 'b': #BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
         sampling_rate = 16000
         use_mfccs = True
-        signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
+        signal_parameters = {'frame_length': 480, 'frame_step': 320, 'mfcc': True,
                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                              'num_coefficients': 10}
-        final_sparsity = 0.9
+        final_sparsity = 0.8
         epochs = 30
         learning_rate = 0.03
         alpha = 0.5
         model_name = 'model_b'
 
-        MILESTONE = [10, 20]
-
         def scheduler(epoch, lr):
-            if epoch in MILESTONE:
+            if epoch % 10 == 0:
                 return lr * 0.17
             else:
                 return lr
@@ -382,23 +378,20 @@ def main(args):
                                              restore_best_weights=True)
         ]
 
-    elif version == 'c':
-        # version with stft
+    elif version == 'c': #CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCc
         sampling_rate = 16000
         use_mfccs = True
-        signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
-                             'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
-                             'num_coefficients': 10}
-        final_sparsity = 0.9
+        signal_parameters = { 'frame_length': 480, 'frame_step': 320, 'mfcc': True,
+                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 32,
+                              'num_coefficients': 10}
+        final_sparsity = 0.7
         epochs = 30
         learning_rate = 0.02
-        alpha = 0.5
+        alpha = 0.4
         model_name = 'model_c'
 
-        MILESTONE = [10, 20]
-
         def scheduler(epoch, lr):
-            if epoch in MILESTONE:
+            if epoch >= 20 and epoch % 5 == 0:
                 return lr * 0.2
             else:
                 return lr
