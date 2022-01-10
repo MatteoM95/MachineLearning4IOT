@@ -8,12 +8,6 @@ from tensorflow import keras
 import tensorflow_model_optimization as tfmot
 import zlib
 
-# Make sure we don't get any GPU errors
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-# physical_devices = tf.config.list_physical_devices("GPU")
-# tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
 class WindowGenerator:
     def __init__(self, batch_size, input_width, label_width, num_features, mean, std):
         self.batch_size = batch_size
@@ -97,7 +91,6 @@ class MyModel:
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(input_shape=input_shape),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
-                # tf.keras.layers.Dense(units=int(128*alpha), activation='relu'),
                 tf.keras.layers.Dense(units=label_width * num_features),
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
@@ -195,9 +188,7 @@ class MyModel:
         self.model = tfmot.sparsity.keras.strip_pruning(self.model)
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
-        converter_optimisations = [tf.lite.Optimize.DEFAULT,  # Enables quantization at conversion.
-                                   # tf.lite.Optimize.OPTIMIZE_FOR_SIZE  # Enables size reduction optimization.
-                                   ]
+        converter_optimisations = [tf.lite.Optimize.DEFAULT]
         if weights_only:
             converter.optimizations = converter_optimisations
             converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
@@ -217,9 +208,6 @@ class MyModel:
             return os.path.getsize(compressed_tflite_model_path) / 1024
 
         return os.path.getsize(tflite_model_path) / 1024
-        # with open(f'./Group10_th_{self.version}.tflite.zlib', 'wb') as fp:
-        #     tflite_compressed = zlib.compress(tflite_model)
-        #     fp.write(tflite_compressed)
 
     # test error MAE on temperature and humidity
     def test_tflite(self, tflite_model_path, test_dataset):
@@ -263,16 +251,14 @@ def main(args):
         label_width = 3
         num_features = 2
 
-        epochs = 80 # 100
+        epochs = 80 # 50
         alpha = 0.2 # 0.2
         learning_rate = 0.1 # 0.1
         batch_size = 512 # 512
         pruning_final_sparsity = 0.93 # 0.93
 
-        MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-
         def scheduler(epoch, lr):
-            if epoch in MILESTONE:
+            if epoch >= 10 and epoch % 10 == 0:
                 return lr * 0.5
             else:
                 return lr
@@ -280,7 +266,7 @@ def main(args):
     else:
         model_name = 'model_b'
 
-        input_width = 16  # attenzione deve essere piú di 9 se addestro con version b
+        input_width = 16 
         label_width = 9
         num_features = 2
 
@@ -290,13 +276,8 @@ def main(args):
         batch_size = 512
         pruning_final_sparsity = 0.9
 
-        # def scheduler(epoch, lr):
-        #     return lr
-
-        MILESTONE = [10, 20, 30, 40, 50, 60, 70, 80, 90]
-
         def scheduler(epoch, lr):
-            if epoch in MILESTONE:
+            if epoch % 10 == 0:
                 return lr * 0.5
             else:
                 return lr
