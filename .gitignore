@@ -179,5 +179,5 @@ dmypy.json
 cython_debug/
 
 
-*.tflite
 models/
+/HW3/EX2/data/
