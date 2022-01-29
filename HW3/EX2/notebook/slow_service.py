@@ -82,9 +82,6 @@ class SlowService:
         pass
 
     def POST(self, *path, **query):
-        # if len(path) != 1 or path[0] != "slow_model":
-        #     raise cherrypy.HTTPError(400, 'Wrong path')
-
         body = cherrypy.request.body.read()
         body = json.loads(body)
 

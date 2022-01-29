@@ -4,6 +4,7 @@
 # powersave = ['sudo', 'sh', '-c', 'echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor']
 #
 # subprocess.check_call(performance)
+import argparse
 
 import tensorflow as tf
 import numpy as np
@@ -90,8 +91,13 @@ def success_checker(pred):
     return sm
 
 
-def make_tf_datasets(dir_path, sampling_rate=16000):
-    dataset_path = os.path.join(dir_path, "mini_speech_commands")
+def main(dir_path, sampling_rate=16000):
+    dataset_path = os.path.join(args.path, "mini_speech_commands")
+
+    text_split_path = './rpi/kws_test_split.txt'
+    model_tflite_path = "./rpi/kws_dscnn_True.tflite"
+    IP = args.ip
+    PORT = args.port
 
     if not os.path.exists(dataset_path):
         tf.keras.utils.get_file(
@@ -100,7 +106,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
             extract=True,
             cache_dir='.', cache_subdir='data')
 
-    test_files = open('./kws_test_split.txt', 'r').read().splitlines()
+    test_files = open(text_split_path, 'r').read().splitlines()
     test_files = tf.convert_to_tensor(test_files)
 
     labels = ['stop', 'up', 'yes', 'right', 'left', 'no', 'down', 'go']
@@ -117,13 +123,13 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
                          num_mel_bins=num_mel_bins, lower_frequency=lower_frequency, upper_frequency=upper_frequency,
                          num_coefficients=num_coefficients, resampling=False)
 
-    interpreter = tf.lite.Interpreter("./kws_dscnn_True.tflite")
+    interpreter = tf.lite.Interpreter(model_tflite_path)
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
     communication_cost = 0.0
-    threshold = 0.15
+    threshold = 0.1
     accuracy = 0
     total_test_size = len(test_files)
     for it, file_path in enumerate(test_files):
@@ -146,7 +152,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
             audio_string = audio_bytes.decode(ENCODING)
 
             request = {
-                "bn": "fast_service@127.0.0.1",
+                "bn": f"fast_service@{IP}",
                 "bt": int(datetime.datetime.now().timestamp()),
                 "e": [
                     {"n": "a", "u": "/", "t": 0, "v": audio_string}
@@ -155,7 +161,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
             request = json.dumps(request)
             if (communication_cost + len(request)) / (1024 * 1024) < 4.5:
                 communication_cost += len(request)
-                r = requests.post('http://127.0.0.1:8080/slow_model', request)
+                r = requests.post(f'http://{IP}:{PORT}/slow_model', request)
                 if r.status_code == 200:
                     label_pred = r.json()['e'][0]['v']
                 else:
@@ -174,7 +180,12 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
 
 
 if __name__ == '__main__':
-    make_tf_datasets("./data")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--path', type=str, required=False, default="./data", help='Dataset path')
+    parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of slow_service')
+    parser.add_argument('--port', type=str, required=False, default="8080", help='Port of slow_service')
+    args = parser.parse_args()
+    main(args)
 
 
 
