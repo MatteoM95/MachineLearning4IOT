@@ -168,7 +168,7 @@ def main(args):
             accuracy += 1
 
     accuracy = round(accuracy / len(test_files) * 100, 3)
-    print(f'Accuracy: {accuracy}%')
+    print(f'Accuracy: {accuracy}% Prova')
     print(f'Communication Cost: {communication_cost / (1024 * 1024)} MB')
 
 
