@@ -100,7 +100,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
             extract=True,
             cache_dir='.', cache_subdir='data')
 
-    test_files = open('./rpi/kws_test_split.txt', 'r').read().splitlines()
+    test_files = open('./kws_test_split.txt', 'r').read().splitlines()
     test_files = tf.convert_to_tensor(test_files)
 
     labels = ['stop', 'up', 'yes', 'right', 'left', 'no', 'down', 'go']
@@ -117,7 +117,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
                          num_mel_bins=num_mel_bins, lower_frequency=lower_frequency, upper_frequency=upper_frequency,
                          num_coefficients=num_coefficients, resampling=False)
 
-    interpreter = tf.lite.Interpreter("./rpi/kws_dscnn_True.tflite")
+    interpreter = tf.lite.Interpreter("./kws_dscnn_True.tflite")
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
@@ -125,8 +125,9 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
     communication_cost = 0.0
     threshold = 0.15
     accuracy = 0
-
+    total_test_size = len(test_files)
     for it, file_path in enumerate(test_files):
+        print(f'Progress: {i + 1}/{total_test_size}', end='\r')
         audio, label_true = sg.read(file_path)
         mfcc = sg.preprocess_with_mfcc(audio)
 
