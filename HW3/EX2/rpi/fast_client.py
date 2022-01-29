@@ -159,15 +159,11 @@ def main(dir_path, sampling_rate=16000):
                 ]
             }
             request = json.dumps(request)
-            if (communication_cost + len(request)) / (1024 * 1024) < 4.5:
-                communication_cost += len(request)
-                r = requests.post(f'http://{IP}:{PORT}/slow_model', request)
-                if r.status_code == 200:
-                    label_pred = r.json()['e'][0]['v']
-                else:
-                    print('Error with the slow model prediction')
+            response = requests.post(f'http://{IP}:{PORT}/slow_model', request)
+            if response.status_code == 200:
+                label_pred = response.json()['e'][0]['v']
             else:
-                label_pred = tf.argmax(prediction)
+                print('Error with the slow model prediction')
         else:
             label_pred = tf.argmax(prediction)
 
