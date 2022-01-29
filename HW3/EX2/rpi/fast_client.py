@@ -146,10 +146,8 @@ def main(dir_path, sampling_rate=16000):
         softmax_difference = success_checker(prediction)
 
         if softmax_difference < threshold:
-            print(f"Slow service calling.... [{softmax_difference}]")
-            ENCODING = 'utf-8'
             audio_bytes = base64.b64encode(audio)
-            audio_string = audio_bytes.decode(ENCODING)
+            audio_string = audio_bytes.decode('utf-8')
 
             request = {
                 "bn": f"fast_service@{IP}",
@@ -159,6 +157,8 @@ def main(dir_path, sampling_rate=16000):
                 ]
             }
             request = json.dumps(request)
+            communication_cost += len(request)
+
             response = requests.post(f'http://{IP}:{PORT}/slow_model', request)
             if response.status_code == 200:
                 label_pred = response.json()['e'][0]['v']

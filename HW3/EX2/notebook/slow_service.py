@@ -122,7 +122,7 @@ class SlowService:
         label_pred = np.argmax(prediction).tolist()
 
         response = {
-            "bn": "slow_service@127.0.0.1",
+            "bn": "slow_service",
             "bt": int(datetime.datetime.now().timestamp()),
             "e": [
                 {"n": "a", "u": "/", "t": 0, "v": label_pred}
@@ -141,7 +141,7 @@ class SlowService:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of slow_service')
-    parser.add_argument('--port', type=str, required=False, default="8080", help='Port of slow_service')
+    parser.add_argument('--port', type=int, required=False, default="8080", help='Port of slow_service')
     args = parser.parse_args()
 
     conf = {
@@ -152,6 +152,6 @@ if __name__ == '__main__':
             }
     cherrypy.tree.mount(SlowService(), '/slow_model', conf)
     cherrypy.config.update({'server.socket_host': f'{args.ip}'})
-    cherrypy.config.update({'server.socket_port': f'{args.port}'})
+    cherrypy.config.update({'server.socket_port': args.port})
     cherrypy.engine.start()
     cherrypy.engine.block()
