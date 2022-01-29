@@ -110,7 +110,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
     upper_frequency = 4000
     frame_length = 480  # 40
     frame_step = 320  # 20
-    num_mel_bins = 40
+    num_mel_bins = 32 # 40
     num_coefficients = 10
 
     sg = SignalGenerator(labels=labels, sampling_rate=sampling_rate, frame_length=frame_length, frame_step=frame_step,
@@ -127,7 +127,7 @@ def make_tf_datasets(dir_path, sampling_rate=16000):
     accuracy = 0
     total_test_size = len(test_files)
     for it, file_path in enumerate(test_files):
-        print(f'Progress: {i + 1}/{total_test_size}', end='\r')
+        print(f'Progress: {it + 1}/{total_test_size}', end='\r')
         audio, label_true = sg.read(file_path)
         mfcc = sg.preprocess_with_mfcc(audio)
 
