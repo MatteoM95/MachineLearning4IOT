@@ -7,7 +7,7 @@ class Monitor:
     def __init__(self, clientID):
         # create an instance of MyMQTT class
         self.clientID = clientID
-        self.myMqttClient = MyMQTT(self.clientID, "mqtt.eclipseprojects.io", 1883, self)
+        self.myMqttClient = MyMQTT(self.clientID, "test.mosquitto.org", 1883, self)
 
     def run(self):
         # if needed, perform some other actions befor starting the mqtt communication

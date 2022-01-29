@@ -156,7 +156,7 @@ def main(args):
             request = json.dumps(request)
             communication_cost += len(request)
 
-            response = requests.post(f'http://{IP}:{PORT}/slow_model', request)
+            response = requests.put(f'http://{IP}:{PORT}/slow_model', request)
             if response.status_code == 200:
                 label_pred = response.json()['e'][0]['v']
             else:

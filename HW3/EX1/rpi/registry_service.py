@@ -28,7 +28,7 @@ class ModelRegistry:
         encoded_model = body.get("model")
         model_name = f"./models/{body.get('name')}"
 
-        model = base64.b64decode(encoded_model)
+        model = base64.b64decode(encoded_model.encode('utf-8'))
 
         if not os.path.exists("./models"):
             os.mkdir("./models")
