@@ -9,7 +9,7 @@ import requests
 from scipy.signal import resample_poly
 
 
-if os.uname() == "raspberry":
+if os.uname().nodename == "raspberrypi":
     print(os.uname())
     performance = ['sudo', 'sh', '-c', 'echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor']
     powersave = ['sudo', 'sh', '-c', 'echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor']
