@@ -1,4 +1,4 @@
-import subprocess
+from subprocess import Popen
 import argparse
 import tensorflow as tf
 import os
@@ -8,13 +8,9 @@ import datetime
 import requests
 from scipy.signal import resample_poly
 
-
-if os.uname().nodename == "raspberrypi":
-    print(os.uname())
-    performance = ['sudo', 'sh', '-c', 'echo performance > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor']
-    powersave = ['sudo', 'sh', '-c', 'echo powersave > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor']
-
-    subprocess.check_call(performance)
+Popen('sudo sh -c "echo performance >'
+      '/sys/devices/system/cpu/cpufreq/policy0/scaling_governor"',
+      shell=True).wait()
 
 
 class SignalGenerator:
