@@ -12,10 +12,9 @@ import cherrypy
 
 
 class SignalGenerator:
-    def __init__(self, labels, sampling_rate, frame_length, frame_step,
+    def __init__(self, sampling_rate, frame_length, frame_step,
                  num_mel_bins=None, lower_frequency=None, upper_frequency=None,
                  num_coefficients=None, resampling=False):
-        self.labels = labels
         self.sampling_rate = sampling_rate
         self.frame_length = frame_length
         self.frame_step = frame_step
@@ -29,17 +28,6 @@ class SignalGenerator:
         self.linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
             self.num_mel_bins, num_spectrogram_bins, self.sampling_rate,
             self.lower_frequency, self.upper_frequency)
-        self.preprocess = self.preprocess_with_mfcc
-
-    # def read(self, file_path):
-    #     parts = tf.strings.split(file_path, os.path.sep)
-    #     label = parts[-2]
-    #     label_id = tf.argmax(label == self.labels)
-    #     audio_binary = tf.io.read_file(file_path)
-    #     audio, _ = tf.audio.decode_wav(audio_binary)
-    #     audio = tf.squeeze(audio, axis=1)
-    #
-    #     return audio, label_id
 
     def pad(self, audio):
         zero_padding = tf.zeros([self.sampling_rate] - tf.shape(audio), dtype=tf.float32)
@@ -70,10 +58,10 @@ class SignalGenerator:
 
         audio = self.pad(audio)
         spectrogram = self.get_spectrogram(audio)
-        # print(tf.shape(spectrogram))
+
         mfccs = self.get_mfccs(spectrogram)
         mfccs = tf.expand_dims(mfccs, -1)
-        # print("MFCC ------", mfccs.shape)
+
         return mfccs
 
 
@@ -88,21 +76,18 @@ class SlowService:
         body = json.loads(body)
 
         encoded_audio = body['e'][0]['v']
-
-        # https://stackabuse.com/encoding-and-decoding-base64-strings-in-python/
         audio_bytes = base64.b64decode(encoded_audio.encode('utf-8'))
-
         audio = np.frombuffer(audio_bytes, dtype=np.float32)
 
         sampling_rate = 16000
         lower_frequency = 20
         upper_frequency = 4000
-        frame_length = 640  # 40
-        frame_step = 320  # 20
+        frame_length = 640
+        frame_step = 320
         num_mel_bins = 40
         num_coefficients = 10
 
-        sg = SignalGenerator(labels=None, sampling_rate=sampling_rate, frame_length=frame_length,
+        sg = SignalGenerator(sampling_rate=sampling_rate, frame_length=frame_length,
                              frame_step=frame_step,
                              num_mel_bins=num_mel_bins, lower_frequency=lower_frequency,
                              upper_frequency=upper_frequency,

@@ -75,10 +75,10 @@ class SignalGenerator:
 
         audio = self.pad(audio)
         spectrogram = self.get_spectrogram(audio)
-        # print(tf.shape(spectrogram))
+
         mfccs = self.get_mfccs(spectrogram)
         mfccs = tf.expand_dims(mfccs, -1)
-        # print("MFCC ------", mfccs.shape)
+
         return mfccs
 
 
@@ -91,7 +91,7 @@ def success_checker(pred):
     return sm
 
 
-def main(dir_path, sampling_rate=16000):
+def main(args):
     dataset_path = os.path.join(args.path, "mini_speech_commands")
 
     text_split_path = './kws_test_split.txt'
@@ -114,9 +114,9 @@ def main(dir_path, sampling_rate=16000):
     sampling_rate = 16000
     lower_frequency = 20
     upper_frequency = 4000
-    frame_length = 480  # 40
-    frame_step = 320  # 20
-    num_mel_bins = 32 # 40
+    frame_length = 480
+    frame_step = 320
+    num_mel_bins = 32
     num_coefficients = 10
 
     sg = SignalGenerator(labels=labels, sampling_rate=sampling_rate, frame_length=frame_length, frame_step=frame_step,
@@ -171,7 +171,7 @@ def main(dir_path, sampling_rate=16000):
             accuracy += 1
 
     accuracy = round(accuracy / len(test_files) * 100, 3)
-    print(f'Collaborative accuracy: {accuracy}%')
+    print(f'Accuracy: {accuracy}%')
     print(f'Communication Cost: {communication_cost / (1024 * 1024)} MB')
 
 
@@ -181,6 +181,7 @@ if __name__ == '__main__':
     parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of slow_service')
     parser.add_argument('--port', type=str, required=False, default="8080", help='Port of slow_service')
     args = parser.parse_args()
+
     main(args)
 
 
