@@ -94,8 +94,8 @@ def success_checker(pred):
 def main(dir_path, sampling_rate=16000):
     dataset_path = os.path.join(args.path, "mini_speech_commands")
 
-    text_split_path = './rpi/kws_test_split.txt'
-    model_tflite_path = "./rpi/kws_dscnn_True.tflite"
+    text_split_path = './kws_test_split.txt'
+    model_tflite_path = "./kws_dscnn_True.tflite"
     IP = args.ip
     PORT = args.port
 
