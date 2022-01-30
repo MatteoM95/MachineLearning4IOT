@@ -36,8 +36,14 @@ class Monitor:
         message = json.loads(msg.payload.decode('utf-8'))
 
         timestamp = datetime.fromtimestamp(message['bt']).strftime('%d/%m/%Y %H:%M:%S')
-        print(f"({timestamp}) {message['bn']}: Predicted={message['e'][0]['v']}{message['e'][0]['u']} "
-              f"Actual={message['e'][1]['v']}{message['e'][1]['u']}")
+        alert_name = message['bn']
+        pred_value = message['e'][0]['v']
+        pred_value_unit = message['e'][0]['u']
+        actual_value = message['e'][0]['v']
+        actual_value_unit = message['e'][0]['u']
+
+        print(f"({timestamp}) {alert_name}: Predicted={pred_value}{pred_value_unit} "
+              f"Actual={actual_value}{actual_value_unit}")
 
 
 if __name__ == "__main__":

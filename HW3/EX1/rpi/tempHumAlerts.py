@@ -63,18 +63,18 @@ def begin(model, tthresh, hthresh):
     interpreter.set_tensor(input_details[0]['index'], input)
     interpreter.invoke()
     prediction = interpreter.get_tensor(output_details[0]['index'])[0]
-    print(y_true)
-    print(prediction)
+    # print(y_true)
+    # print(prediction)
     abs_error = np.abs(prediction - y_true)
-    print(abs_error)
+    # print(abs_error)
 
     if abs_error[0] > tthresh:
         response = {
             "bn": "Temperature Alert",
             "bt": int(datetime.now().timestamp()),
             "e": [
-                {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
-                {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
+                {"n": "pred", "u": "°C", "t": 0, "v": str(round(prediction[0], 2))},
+                {"n": "actual", "u": "°C", "t": 0, "v": str(round(y_true[0], 2))}
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
@@ -83,8 +83,8 @@ def begin(model, tthresh, hthresh):
             "bn": "Humidity Alert",
             "bt": int(datetime.now().timestamp()),
             "e": [
-                {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
-                {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
+                {"n": "pred", "u": "%", "t": 0, "v": str(round(prediction[1], 2))},
+                {"n": "actual", "u": "%", "t": 0, "v": str(round(y_true[1], 2))}
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
