@@ -1,34 +1,45 @@
 import time
 from datetime import datetime
-from MyMQTT import MyMQTT
+import paho.mqtt.client as PahoMQTT
 
 
 class Monitor:
     def __init__(self, clientID):
-        # create an instance of MyMQTT class
+        self.topic = None
         self.clientID = clientID
-        self.myMqttClient = MyMQTT(self.clientID, "test.mosquitto.org", 1883, self)
 
-    def run(self):
-        # if needed, perform some other actions befor starting the mqtt communication
-        print(f"Running {self.clientID}")
-        self.myMqttClient.start()
+        self._paho_mqtt = PahoMQTT.Client(clientID, False)
 
-    def end(self):
-        # if needed, perform some other actions befor ending the software
-        print(f"Ending {self.clientID}")
-        self.myMqttClient.stop()
+        self._paho_mqtt.on_connect = self.myOnConnect
+        self._paho_mqtt.on_message = self.myOnMessageReceived
 
-    def notify(self, topic, msg):
-        # manage here your received message. You can perform some error-check here
+        self.messageBroker = 'test.mosquitto.org'
+
+    def start(self):
+        self._paho_mqtt.connect(self.messageBroker, 1883)
+        self._paho_mqtt.loop_start()
+
+    def subscribe(self, topic):
+        self.topic = topic
+        self._paho_mqtt.subscribe(self.topic, 2)
+
+    def stop(self):
+        self._paho_mqtt.unsubscribe(self.topic)
+        self._paho_mqtt.loop_stop()
+        self._paho_mqtt.disconnect()
+
+    def myOnConnect(self, paho_mqtt, userdata, flags, rc):
+        print(f"Connected to {self.messageBroker} with result code: {rc}")
+
+    def myOnMessageReceived(self, paho_mqtt, userdata, msg):
         now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         print(f"({now}) {msg}")
 
 
 if __name__ == "__main__":
     monitor = Monitor("Monitoring Client")
-    monitor.run()
-    monitor.myMqttClient.mySubscribe("/alerts")
+    monitor.start()
+    monitor.subscribe("/alerts")
 
     a = 0
     while True:

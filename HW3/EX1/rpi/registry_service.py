@@ -2,6 +2,7 @@ import base64
 import os
 import cherrypy
 import json
+import tempHumAlerts
 
 
 class ModelRegistry:
@@ -16,7 +17,12 @@ class ModelRegistry:
         return json.dumps(response)
 
     def POST(self, *path, **query):
-        pass
+        if len(path) != 1 or path[0] != "request":
+            raise cherrypy.HTTPError(400, 'Wrong path')
+
+        tempHumAlerts.begin()
+
+        return json.dumps({'response': "OK"})
 
     def PUT(self, *path, **query):
         if len(path) != 1 or path[0] != "add":
