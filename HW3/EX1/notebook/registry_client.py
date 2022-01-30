@@ -33,7 +33,7 @@ def getModelList():
 
 
 def startPrediction():
-    body = {'model': "tfliteCNN.tflite", 'tthresh': 2, 'hthresh': 10}
+    body = {'model': "tfliteCNN.tflite", 'tthresh': 0.1, 'hthresh': 0.2}
     r = requests.post(f'http://{args.ip}:{args.port}/request', json=body)
     if r.status_code == 200:
         print(r.json())

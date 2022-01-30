@@ -33,7 +33,6 @@ class Alerts:
 
 
 def begin(model, tthresh, hthresh):
-    print(f"hthresh={hthresh}, tthresh={tthresh}")
     alerts = Alerts("Temperature/Humidity Alerts")
     alerts.start()
 
@@ -41,9 +40,6 @@ def begin(model, tthresh, hthresh):
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-
-    # print(input_details)
-    # print(output_details)
 
     dht_device = adafruit_dht.DHT22(D4)
     while True:
@@ -59,8 +55,12 @@ def begin(model, tthresh, hthresh):
             except:
                 pass
 
+        try:
+            y_true = np.array([dht_device.temperature, dht_device.humidity])
+        except:
+            time.sleep(2)
+            y_true = np.array([dht_device.temperature, dht_device.humidity])
 
-        y_true = np.array([dht_device.temperature, dht_device.humidity])
         interpreter.set_tensor(input_details[0]['index'], input)
         interpreter.invoke()
         prediction = interpreter.get_tensor(output_details[0]['index'])[0]
