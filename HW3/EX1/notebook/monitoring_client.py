@@ -39,8 +39,8 @@ class Monitor:
         alert_name = message['bn']
         pred_value = message['e'][0]['v']
         pred_value_unit = message['e'][0]['u']
-        actual_value = message['e'][0]['v']
-        actual_value_unit = message['e'][0]['u']
+        actual_value = message['e'][1]['v']
+        actual_value_unit = message['e'][1]['u']
 
         print(f"({timestamp}) {alert_name}: Predicted={pred_value}{pred_value_unit} "
               f"Actual={actual_value}{actual_value_unit}")

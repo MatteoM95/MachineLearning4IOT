@@ -59,7 +59,8 @@ def begin(model, tthresh, hthresh):
     except:
         time.sleep(2)
         y_true = np.array([dht_device.temperature, dht_device.humidity])
-
+    
+    dht_device.exit()
     interpreter.set_tensor(input_details[0]['index'], input)
     interpreter.invoke()
     prediction = interpreter.get_tensor(output_details[0]['index']).reshape(2,)
