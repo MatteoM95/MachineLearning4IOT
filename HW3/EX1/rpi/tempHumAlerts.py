@@ -33,6 +33,7 @@ class Alerts:
 
 
 def begin(model, tthresh, hthresh):
+    print(f"hthresh={hthresh}, tthresh={tthresh}")
     alerts = Alerts("Temperature/Humidity Alerts")
     alerts.start()
 
@@ -58,7 +59,7 @@ def begin(model, tthresh, hthresh):
         prediction = interpreter.get_tensor(output_details[0]['index'])[0]
         print(y_true)
         print(prediction)
-        abs_error = np.abs(prediction, y_true)
+        abs_error = np.abs(prediction - y_true)
         print(abs_error)
 
 
