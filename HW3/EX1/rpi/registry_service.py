@@ -23,9 +23,10 @@ class ModelRegistry:
 
         body = cherrypy.request.body.read()
         body = json.loads(body)
-        tempHumAlerts.begin(model=body.get("model"),
-                            tthresh=body.get("tthresh"),
-                            hthresh=body.get("hthresh"))
+        print(body)
+        # tempHumAlerts.begin(model=body.get("model"),
+        #                     tthresh=body.get("tthresh"),
+        #                     hthresh=body.get("hthresh"))
 
         return json.dumps({'response': "OK"})
 
