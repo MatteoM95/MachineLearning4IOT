@@ -88,3 +88,5 @@ def begin(model, tthresh, hthresh):
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
+
+    alerts.stop()
