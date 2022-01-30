@@ -21,7 +21,11 @@ class ModelRegistry:
         if len(path) != 1 or path[0] != "request":
             raise cherrypy.HTTPError(400, 'Wrong path')
 
-        tempHumAlerts.begin()
+        body = cherrypy.request.body.read()
+        body = json.loads(body)
+        tempHumAlerts.begin(model=body.get("model"),
+                            tthresh=body.get("tthresh"),
+                            hthresh=body.get("hthresh"))
 
         return json.dumps({'response': "OK"})
 

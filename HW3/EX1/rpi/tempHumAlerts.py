@@ -32,11 +32,11 @@ class Alerts:
         print(f"Connected to {self.messageBroker} with result code: {rc}")
 
 
-def begin():
+def begin(model, tthresh, hthresh):
     alerts = Alerts("Temperature/Humidity Alerts")
     alerts.start()
 
-    interpreter = tf.lite.Interpreter("./models/tfliteCNN.tflite")
+    interpreter = tf.lite.Interpreter(f"./models/{model}")
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
@@ -52,11 +52,14 @@ def begin():
             input[0, i, 1] = dht_device.humidity
             time.sleep(2)
 
-        print(input)
+        y_true = np.array([dht_device.temperature, dht_device.humidity])
         interpreter.set_tensor(input_details[0]['index'], input)
         interpreter.invoke()
         prediction = interpreter.get_tensor(output_details[0]['index'])[0]
+        print(y_true)
         print(prediction)
+        abs_error = np.abs(prediction, y_true)
+        print(abs_error)
 
 
 
