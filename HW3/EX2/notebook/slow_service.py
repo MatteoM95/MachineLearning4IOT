@@ -75,6 +75,8 @@ class SlowService:
         pass
 
     def PUT(self, *path, **query):
+        model_tflite_path = "./kws_dscnn_True.tflite"
+
         body = cherrypy.request.body.read()
         body = json.loads(body)
 
@@ -85,8 +87,8 @@ class SlowService:
         sampling_rate = 16000
         lower_frequency = 20
         upper_frequency = 4000
-        frame_length = 640
-        frame_step = 320
+        frame_length = 640  # 16 * 40
+        frame_step = 320  # 16 * 20
         num_mel_bins = 40
         num_coefficients = 10
 
@@ -96,7 +98,7 @@ class SlowService:
                              upper_frequency=upper_frequency,
                              num_coefficients=num_coefficients, resampling=False)
 
-        interpreter = tf.lite.Interpreter("./kws_dscnn_True.tflite")
+        interpreter = tf.lite.Interpreter(model_tflite_path)
         interpreter.allocate_tensors()
         input_details = interpreter.get_input_details()
         output_details = interpreter.get_output_details()
