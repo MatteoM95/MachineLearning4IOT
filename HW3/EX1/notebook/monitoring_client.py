@@ -1,3 +1,4 @@
+import json
 import time
 from datetime import datetime
 import paho.mqtt.client as PahoMQTT
@@ -33,7 +34,8 @@ class Monitor:
 
     def myOnMessageReceived(self, paho_mqtt, userdata, msg):
         now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-        print(f"({now}) {msg}")
+        message = json.loads(msg.payload.decode('utf-8'))
+        print(f"({now}) {message['bn']}")
 
 
 if __name__ == "__main__":

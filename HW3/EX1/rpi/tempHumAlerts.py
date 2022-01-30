@@ -48,10 +48,17 @@ def begin(model, tthresh, hthresh):
     dht_device = adafruit_dht.DHT22(D4)
     while True:
         input = np.zeros([1, 6, 2], dtype=np.float32)
-        for i in range(6):
-            input[0, i, 0] = dht_device.temperature
-            input[0, i, 1] = dht_device.humidity
-            time.sleep(2)
+
+        i = 0
+        while i < 6:
+            try:
+                input[0, i, 0] = dht_device.temperature
+                input[0, i, 1] = dht_device.humidity
+                time.sleep(2)
+                i += 1
+            except:
+                pass
+
 
         y_true = np.array([dht_device.temperature, dht_device.humidity])
         interpreter.set_tensor(input_details[0]['index'], input)
