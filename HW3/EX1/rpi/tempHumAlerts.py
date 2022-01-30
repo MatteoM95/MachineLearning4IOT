@@ -1,6 +1,6 @@
+import json
 import time
 from datetime import datetime
-
 import numpy as np
 import paho.mqtt.client as PahoMQTT
 import tensorflow as tf
@@ -62,7 +62,23 @@ def begin(model, tthresh, hthresh):
         abs_error = np.abs(prediction - y_true)
         print(abs_error)
 
-
-
-    # interpreter.set_tensor(input_details[0]['index'], mfcc)
-    # interpreter.invoke()
+        if abs_error[0] > tthresh:
+            response = {
+                "bn": "Temperature Alert",
+                "bt": int(datetime.now().timestamp()),
+                "e": [
+                    {"n": "pred", "u": "C", "t": 0, "v": prediction[0]},
+                    {"n": "actual", "u": "C", "t": 0, "v": y_true[0]}
+                ]
+            }
+            alerts.myPublish("/alerts", json.dumps(response))
+        if abs_error[0] > tthresh:
+            response = {
+                "bn": "Humidity Alert",
+                "bt": int(datetime.now().timestamp()),
+                "e": [
+                    {"n": "pred", "u": "%", "t": 0, "v": prediction[1]},
+                    {"n": "actual", "u": "%", "t": 0, "v": y_true[1]}
+                ]
+            }
+            alerts.myPublish("/alerts", json.dumps(response))
