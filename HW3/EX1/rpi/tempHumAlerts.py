@@ -42,52 +42,53 @@ def begin(model, tthresh, hthresh):
     output_details = interpreter.get_output_details()
 
     dht_device = adafruit_dht.DHT22(D4)
-    input = np.zeros([1, 6, 2], dtype=np.float32)
+    while True:
+        input = np.zeros([1, 6, 2], dtype=np.float32)
+        i = 0
+        while i < 6:
+            # Try except in order to manage occasional sensor failure
+            try:
+                input[0, i, 0] = dht_device.temperature
+                input[0, i, 1] = dht_device.humidity
+                time.sleep(2)
+                i += 1
+            except:
+                pass
 
-    i = 0
-    while i < 6:
+        # Try except in order to manage occasional sensor failure
         try:
-            input[0, i, 0] = dht_device.temperature
-            input[0, i, 1] = dht_device.humidity
-            time.sleep(2)
-            i += 1
+            y_true = np.array([dht_device.temperature, dht_device.humidity])
         except:
-            pass
+            time.sleep(2)
+            y_true = np.array([dht_device.temperature, dht_device.humidity])
 
-    try:
-        y_true = np.array([dht_device.temperature, dht_device.humidity])
-    except:
-        time.sleep(2)
-        y_true = np.array([dht_device.temperature, dht_device.humidity])
+        # dht_device.exit()
+        interpreter.set_tensor(input_details[0]['index'], input)
+        interpreter.invoke()
+        prediction = interpreter.get_tensor(output_details[0]['index']).reshape(2,)
 
-    dht_device.exit()
-    interpreter.set_tensor(input_details[0]['index'], input)
-    interpreter.invoke()
-    prediction = interpreter.get_tensor(output_details[0]['index']).reshape(2,)
-    # print(y_true)
-    # print(prediction)
-    abs_error = np.abs(prediction - y_true)
-    print(abs_error)
+        abs_error = np.abs(prediction - y_true)
+        print(abs_error)
 
-    if abs_error[0] > tthresh:
-        response = {
-            "bn": "Temperature Alert",
-            "bt": int(datetime.now().timestamp()),
-            "e": [
-                {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
-                {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
-            ]
-        }
-        alerts.myPublish("/alerts", json.dumps(response))
-    if abs_error[1] > hthresh:
-        response = {
-            "bn": "Humidity Alert",
-            "bt": int(datetime.now().timestamp()),
-            "e": [
-                {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
-                {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
-            ]
-        }
-        alerts.myPublish("/alerts", json.dumps(response))
+        if abs_error[0] > tthresh:
+            response = {
+                "bn": "Temperature Alert",
+                "bt": int(datetime.now().timestamp()),
+                "e": [
+                    {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
+                    {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
+                ]
+            }
+            alerts.myPublish("/alerts", json.dumps(response))
+        if abs_error[1] > hthresh:
+            response = {
+                "bn": "Humidity Alert",
+                "bt": int(datetime.now().timestamp()),
+                "e": [
+                    {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
+                    {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
+                ]
+            }
+            alerts.myPublish("/alerts", json.dumps(response))
 
     alerts.stop()
