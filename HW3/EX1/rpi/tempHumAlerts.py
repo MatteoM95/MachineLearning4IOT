@@ -68,23 +68,23 @@ def begin(model, tthresh, hthresh):
     abs_error = np.abs(prediction - y_true)
     print(abs_error)
 
-    # if abs_error[0] > tthresh:
-    #     response = {
-    #         "bn": "Temperature Alert",
-    #         "bt": int(datetime.now().timestamp()),
-    #         "e": [
-    #             {"n": "pred", "u": "°C", "t": 0, "v": str(round(prediction[0], 2))},
-    #             {"n": "actual", "u": "°C", "t": 0, "v": str(round(y_true[0], 2))}
-    #         ]
-    #     }
-    #     alerts.myPublish("/alerts", json.dumps(response))
-    # if abs_error[0] > hthresh:
-    #     response = {
-    #         "bn": "Humidity Alert",
-    #         "bt": int(datetime.now().timestamp()),
-    #         "e": [
-    #             {"n": "pred", "u": "%", "t": 0, "v": str(round(prediction[1], 2))},
-    #             {"n": "actual", "u": "%", "t": 0, "v": str(round(y_true[1], 2))}
-    #         ]
-    #     }
-    #     alerts.myPublish("/alerts", json.dumps(response))
+    if abs_error[0] > tthresh:
+        response = {
+            "bn": "Temperature Alert",
+            "bt": int(datetime.now().timestamp()),
+            "e": [
+                {"n": "pred", "u": "°C", "t": 0, "v": str(round(prediction[0], 2))},
+                {"n": "actual", "u": "°C", "t": 0, "v": str(round(y_true[0], 2))}
+            ]
+        }
+        alerts.myPublish("/alerts", json.dumps(response))
+    if abs_error[0] > hthresh:
+        response = {
+            "bn": "Humidity Alert",
+            "bt": int(datetime.now().timestamp()),
+            "e": [
+                {"n": "pred", "u": "%", "t": 0, "v": str(round(prediction[1], 2))},
+                {"n": "actual", "u": "%", "t": 0, "v": str(round(y_true[1], 2))}
+            ]
+        }
+        alerts.myPublish("/alerts", json.dumps(response))

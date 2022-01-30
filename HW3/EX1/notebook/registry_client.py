@@ -37,7 +37,7 @@ def predict():
     body = {'model': args.model, 'tthresh': 0.1, 'hthresh': 0.2}
     r = requests.post(f'http://{args.ip}:{args.port}/request', json=body)
     if r.status_code == 200:
-        print(r.json())
+        print(r.json()['response'])
     else:
         print("Error with predicting function")
         exit(-1)
