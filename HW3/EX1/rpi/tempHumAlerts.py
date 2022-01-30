@@ -66,7 +66,7 @@ def begin(model, tthresh, hthresh):
     # print(y_true)
     # print(prediction)
     abs_error = np.abs(prediction - y_true)
-    # print(abs_error)
+    print(abs_error)
 
     if abs_error[0] > tthresh:
         response = {
