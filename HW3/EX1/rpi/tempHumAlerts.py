@@ -49,8 +49,8 @@ def begin():
         input = np.zeros([1, 6, 2], dtype=np.float32)
         for i in range(6):
             input[0, i, 0] = dht_device.temperature
-            input[0, i, 0] = dht_device.humidity
-            time.sleep(1)
+            input[0, i, 1] = dht_device.humidity
+            time.sleep(2)
 
         print(input)
 
