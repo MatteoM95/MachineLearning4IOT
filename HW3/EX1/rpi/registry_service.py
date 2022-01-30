@@ -1,3 +1,4 @@
+import argparse
 import base64
 import os
 import cherrypy
@@ -48,9 +49,14 @@ class ModelRegistry:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of slow_service')
+    parser.add_argument('--port', type=int, required=False, default="8080", help='Port of slow_service')
+    args = parser.parse_args()
+
     conf = {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}}
     cherrypy.tree.mount(ModelRegistry(), '', conf)
-    cherrypy.config.update({'server.socket_host': '0.0.0.0'})
-    cherrypy.config.update({'server.socket_port': 8080})
+    cherrypy.config.update({'server.socket_host': f'{args.ip}'})
+    cherrypy.config.update({'server.socket_port': args.port})
     cherrypy.engine.start()
     cherrypy.engine.block()
