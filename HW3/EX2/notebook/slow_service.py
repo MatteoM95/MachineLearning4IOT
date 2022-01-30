@@ -113,7 +113,7 @@ class SlowService:
             "bn": "slow_service",
             "bt": int(datetime.datetime.now().timestamp()),
             "e": [
-                {"n": "a", "u": "/", "t": 0, "v": label_pred}
+                {"n": "prediction", "u": "/", "t": 0, "v": label_pred}
             ]
         }
 

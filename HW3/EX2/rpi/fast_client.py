@@ -150,7 +150,7 @@ def main(args):
                 "bn": f"fast_service@{IP}",
                 "bt": int(datetime.datetime.now().timestamp()),
                 "e": [
-                    {"n": "a", "u": "/", "t": 0, "v": audio_string}
+                    {"n": "audio", "u": "/", "t": 0, "v": audio_string}
                 ]
             }
             request = json.dumps(request)
