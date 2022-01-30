@@ -41,8 +41,8 @@ def begin():
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    print(input_details)
-    print(output_details)
+    # print(input_details)
+    # print(output_details)
 
     dht_device = adafruit_dht.DHT22(D4)
     while True:
@@ -51,6 +51,8 @@ def begin():
             input[0, i, 0] = dht_device.temperature
             input[0, i, 0] = dht_device.humidity
             time.sleep(1)
+
+        print(input)
 
 
 
