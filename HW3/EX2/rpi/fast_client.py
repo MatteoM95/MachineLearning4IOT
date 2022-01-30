@@ -128,6 +128,7 @@ def main(args):
     communication_cost = 0.0
     threshold = 0.1
     accuracy = 0
+
     total_test_size = len(test_files)
     for it, file_path in enumerate(test_files):
         print(f'Progress: {it + 1}/{total_test_size}', end='\r')
