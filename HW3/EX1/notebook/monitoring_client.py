@@ -35,7 +35,8 @@ class Monitor:
     def myOnMessageReceived(self, paho_mqtt, userdata, msg):
         now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         message = json.loads(msg.payload.decode('utf-8'))
-        print(f"({now}) {message['bn']}")
+        print(f"({message['bt']}) {message['bn']}: Predicted={message['e'][0]['v']}{message['e'][0]['u']} "
+              f"Actual={message['e'][1]['v']}{message['e'][1]['u']}")
 
 
 if __name__ == "__main__":
