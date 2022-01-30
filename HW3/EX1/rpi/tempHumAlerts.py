@@ -63,10 +63,10 @@ def begin(model, tthresh, hthresh):
     interpreter.set_tensor(input_details[0]['index'], input)
     interpreter.invoke()
     prediction = interpreter.get_tensor(output_details[0]['index']).reshape(2,)
-    print(y_true)
-    print(prediction)
+    # print(y_true)
+    # print(prediction)
     abs_error = np.abs(prediction - y_true)
-    print(abs_error)
+    # print(abs_error)
 
     if abs_error[0] > tthresh:
         response = {
@@ -78,7 +78,7 @@ def begin(model, tthresh, hthresh):
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
-    if abs_error[0] > hthresh:
+    if abs_error[1] > hthresh:
         response = {
             "bn": "Humidity Alert",
             "bt": int(datetime.now().timestamp()),
