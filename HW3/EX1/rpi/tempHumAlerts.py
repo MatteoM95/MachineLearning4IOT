@@ -73,8 +73,8 @@ def begin(model, tthresh, hthresh):
             "bn": "Temperature Alert",
             "bt": int(datetime.now().timestamp()),
             "e": [
-                {"n": "pred", "u": "°C", "t": 0, "v": str(round(prediction[0], 2))},
-                {"n": "actual", "u": "°C", "t": 0, "v": str(round(y_true[0], 2))}
+                {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
+                {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
@@ -83,8 +83,8 @@ def begin(model, tthresh, hthresh):
             "bn": "Humidity Alert",
             "bt": int(datetime.now().timestamp()),
             "e": [
-                {"n": "pred", "u": "%", "t": 0, "v": str(round(prediction[1], 2))},
-                {"n": "actual", "u": "%", "t": 0, "v": str(round(y_true[1], 2))}
+                {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
+                {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
             ]
         }
         alerts.myPublish("/alerts", json.dumps(response))
