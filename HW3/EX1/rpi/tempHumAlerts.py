@@ -62,7 +62,7 @@ def begin(model, tthresh, hthresh):
 
     interpreter.set_tensor(input_details[0]['index'], input)
     interpreter.invoke()
-    prediction = interpreter.get_tensor(output_details[0]['index'])[0]
+    prediction = interpreter.get_tensor(output_details[0]['index']).reshape(2,)
     print(y_true)
     print(prediction)
     abs_error = np.abs(prediction - y_true)
