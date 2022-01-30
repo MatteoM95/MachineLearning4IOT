@@ -53,6 +53,10 @@ def begin():
             time.sleep(2)
 
         print(input)
+        interpreter.set_tensor(input_details[0]['index'], input)
+        interpreter.invoke()
+        prediction = interpreter.get_tensor(output_details[0]['index'])[0]
+        print(prediction)
 
 
 
