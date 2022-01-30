@@ -41,7 +41,7 @@ def begin(model, tthresh, hthresh):
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    dht_device = adafruit_dht.DHT22(D4)
+    dht_device = adafruit_dht.DHT11(D4)
     while True:
         input = np.zeros([1, 6, 2], dtype=np.float32)
         i = 0

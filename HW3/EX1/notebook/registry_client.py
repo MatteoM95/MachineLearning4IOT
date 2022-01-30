@@ -17,7 +17,7 @@ def sendModel():
     body = {'model': encoded_model.decode("utf-8"), 'name': args.model}
     r = requests.put(f'http://{args.ip}:{args.port}/add', json=body)
     if r.status_code == 200:
-        print(r.content.decode("utf-8"))
+        print(f"Model STORED -> {r.content.decode('utf-8')}")
     else:
         print("Error with model storing")
         exit(-1)
@@ -27,7 +27,7 @@ def sendModel():
 def getModelList():
     r = requests.get(f'http://{args.ip}:{args.port}/list')
     if r.status_code == 200:
-        print(r.json()['models'])
+        print(f"Model LIST -> {r.json()['models']}")
     else:
         print("Error while getting the models' list")
         exit(-1)
