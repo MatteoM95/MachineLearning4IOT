@@ -50,7 +50,7 @@ def begin(model, tthresh, hthresh):
             try:
                 input[0, i, 0] = dht_device.temperature
                 input[0, i, 1] = dht_device.humidity
-                time.sleep(2)
+                time.sleep(1)
                 i += 1
             except:
                 pass
