@@ -79,10 +79,10 @@ def begin(model, tthresh, hthresh):
                 ]
             }
             alerts.myPublish("/alerts", json.dumps(response))
-        if abs_error[0] > tthresh:
+        if abs_error[0] > hthresh:
             response = {
                 "bn": "Humidity Alert",
-                "bt": int(datetime.now().strftime('%d/%m/%Y %H:%M:%S')),
+                "bt": int(datetime.now().timestamp()),
                 "e": [
                     {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
                     {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}

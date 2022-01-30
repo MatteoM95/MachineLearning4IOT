@@ -33,9 +33,10 @@ class Monitor:
         print(f"Connected to {self.messageBroker} with result code: {rc}")
 
     def myOnMessageReceived(self, paho_mqtt, userdata, msg):
-        now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         message = json.loads(msg.payload.decode('utf-8'))
-        print(f"({message['bt']}) {message['bn']}: Predicted={message['e'][0]['v']}{message['e'][0]['u']} "
+
+        timestamp = datetime.fromtimestamp(message['bt']).strftime('%d/%m/%Y %H:%M:%S')
+        print(f"({timestamp}) {message['bn']}: Predicted={message['e'][0]['v']}{message['e'][0]['u']} "
               f"Actual={message['e'][1]['v']}{message['e'][1]['u']}")
 
 
