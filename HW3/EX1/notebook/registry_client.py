@@ -6,7 +6,7 @@ import base64
 parser = argparse.ArgumentParser()
 parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of registry service')
 parser.add_argument('--port', type=int, required=False, default="8080", help='Port of registry service')
-parser.add_argument('--model', type=int, required=False, default="tfliteCNN.tflite", help='Model name')
+parser.add_argument('--model', type=str, required=False, default="tfliteCNN.tflite", help='Model name')
 args = parser.parse_args()
 
 
@@ -34,7 +34,7 @@ def getModelList():
 
 
 def predict():
-    body = {'model': "tfliteCNN.tflite", 'tthresh': 0.1, 'hthresh': 0.2}
+    body = {'model': args.model, 'tthresh': 0.1, 'hthresh': 0.2}
     r = requests.post(f'http://{args.ip}:{args.port}/request', json=body)
     if r.status_code == 200:
         print(r.json())
