@@ -23,7 +23,7 @@ class ModelRegistry:
 
         body = cherrypy.request.body.read()
         body = json.loads(body)
-        print(body)
+        print(body['tthresh'])
         # tempHumAlerts.begin(model=body.get("model"),
         #                     tthresh=body.get("tthresh"),
         #                     hthresh=body.get("hthresh"))
