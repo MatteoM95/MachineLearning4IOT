@@ -20,14 +20,13 @@ class ModelRegistry:
     def POST(self, *path, **query):
         if len(path) != 1 or path[0] != "request":
             raise cherrypy.HTTPError(400, 'Wrong path')
+        if len(query) != 3:
+            raise cherrypy.HTTPError(400, 'Wrong number of parameter')
 
-        print(query)
-
-        body = cherrypy.request.body.read()
-        body = json.loads(body)
-        tempHumAlerts.begin(model=body['model'],
-                            tthresh=body['tthresh'],
-                            hthresh=body['hthresh'])
+        params = query
+        tempHumAlerts.begin(model=params['model'],
+                            tthresh=params['tthresh'],
+                            hthresh=params['hthresh'])
 
         return json.dumps({'response': "OK"})
 
