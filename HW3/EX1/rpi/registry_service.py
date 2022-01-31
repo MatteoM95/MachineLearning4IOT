@@ -20,7 +20,10 @@ class ModelRegistry:
     def POST(self, *path, **query):
         if len(path) != 1 or path[0] != "request":
             raise cherrypy.HTTPError(400, 'Wrong path')
-        if len(query) != 3:
+        if len(query) != 3 or \
+                'model' not in query or \
+                'tthresh' not in query or \
+                'hthresh' not in query:
             raise cherrypy.HTTPError(400, 'Wrong number of parameter')
 
         params = query
