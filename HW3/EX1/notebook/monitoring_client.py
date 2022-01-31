@@ -51,7 +51,6 @@ if __name__ == "__main__":
     monitor.start()
     monitor.subscribe("/alerts")
 
-    a = 0
     while True:
         time.sleep(1)
 
