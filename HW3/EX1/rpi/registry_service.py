@@ -24,7 +24,7 @@ class ModelRegistry:
                 'model' not in query or \
                 'tthresh' not in query or \
                 'hthresh' not in query:
-            raise cherrypy.HTTPError(400, 'Wrong number of parameter')
+            raise cherrypy.HTTPError(400, 'Wrong parameters')
 
         params = query
         tempHumAlerts.begin(model=params['model'],

@@ -39,7 +39,7 @@ def predict():
     if r.status_code == 200:
         print(r.json()['response'])
     else:
-        print("Error with predicting function")
+        print(f"Error with predicting function {r.text}")
         exit(-1)
 
 
