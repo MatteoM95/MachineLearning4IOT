@@ -5,7 +5,9 @@ Assignements and exercises for the "Machine Learning for IoT" course at Politecn
 > Credits for the text of the exercises to Andrea Calimera and Valentino Peluso - teacher and teaching assistants of the course.
 
 ### Homeworks
-> Homework carried out with Gabriele Rosi and Fabio Tecco
+
+> Homework carried out with Gabriele Rosi and Fabio Tecco.
+
 | Number  | Topic  | File(s) |
 | ------------- | ------------- | ------------- | 
 | 01 | TFRecord and audio preprocessing optimization | [`link`](https://github.com/MatteoM95/MachineLearning4IOT/tree/master/HW1)|
