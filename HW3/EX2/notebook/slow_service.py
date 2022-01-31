@@ -84,8 +84,8 @@ class SlowService:
         sampling_rate = 16000
         lower_frequency = 20
         upper_frequency = 4000
-        frame_length = 640  # 16 * 40
-        frame_step = 320  # 16 * 20
+        frame_length = 640  # int(40*(sampling_rate/1000))
+        frame_step = 320  # int(20*(sampling_rate/1000))
         num_mel_bins = 40
         num_coefficients = 10
 
