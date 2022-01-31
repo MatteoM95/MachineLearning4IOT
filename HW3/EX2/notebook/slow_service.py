@@ -72,9 +72,6 @@ class SlowService:
         pass
 
     def POST(self, *path, **query):
-        pass
-
-    def PUT(self, *path, **query):
         model_tflite_path = "./kws_dscnn_True.tflite"
 
         body = cherrypy.request.body.read()
@@ -120,6 +117,9 @@ class SlowService:
         }
 
         return json.dumps(response)
+
+    def PUT(self, *path, **query):
+        pass
 
     def DELETE(self, *path, **query):
         pass
