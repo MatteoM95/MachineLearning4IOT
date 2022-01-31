@@ -25,8 +25,8 @@ class ModelRegistry:
 
         params = query
         tempHumAlerts.begin(model=params['model'],
-                            tthresh=int(params['tthresh']),
-                            hthresh=int(params['hthresh']))
+                            tthresh=float(params['tthresh']),
+                            hthresh=float(params['hthresh']))
 
         return json.dumps({'response': "OK"})
 
