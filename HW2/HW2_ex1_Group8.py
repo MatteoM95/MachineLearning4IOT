@@ -8,6 +8,7 @@ from tensorflow import keras
 import tensorflow_model_optimization as tfmot
 import zlib
 
+
 class WindowGenerator:
     def __init__(self, batch_size, input_width, label_width, num_features, mean, std):
         self.batch_size = batch_size
@@ -21,7 +22,6 @@ class WindowGenerator:
         # features -> set of sequences made of input_width + label_width values each. [#batch, (input+label)_width, 2]
         inputs = features[:, :-self.label_width, :]
         labels = features[:, -self.label_width:, :]
-
         inputs.set_shape([None, self.input_width, self.num_features])
         labels.set_shape([None, self.label_width, self.num_features])
 
@@ -29,13 +29,11 @@ class WindowGenerator:
 
     def normalize(self, features):
         features = (features - self.mean) / (self.std + 1.e-6)
-
         return features
 
     def preprocess(self, features):
         inputs, labels = self.split_window(features)
         inputs = self.normalize(inputs)
-
         return inputs, labels
 
     def make_dataset(self, data, reshuffle):
@@ -82,20 +80,22 @@ class MultiOutputMAE(tf.keras.metrics.Metric):
 
 
 class MyModel:
-    def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, input_width = 6, label_width=3, num_features=2):
+    def __init__(self, model_name, alpha, version, batch_size=32, final_sparsity=None, input_width=6, label_width=3,
+                 num_features=2):
 
         if model_name.lower() == 'model_a':
             input_shape = [input_width, num_features]
 
-            #MLP model
+            # MLP model
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(input_shape=input_shape),
                 tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
+                # tf.keras.layers.Dense(units=int(128 * alpha), activation='relu'),
                 tf.keras.layers.Dense(units=label_width * num_features),
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
 
-            #CNN model
+            # CNN model
             # model = keras.Sequential([
             #     keras.layers.Conv1D(input_shape=input_shape, filters=int(64 * alpha), kernel_size=3),
             #     keras.layers.ReLU(),
@@ -106,7 +106,7 @@ class MyModel:
             #     keras.layers.Reshape([label_width, num_features])
             # ])
 
-            #LSTM model
+            # LSTM model
             # model = keras.Sequential([
             #     keras.layers.LSTM(units=int(64 * alpha)),
             #     keras.layers.Flatten(),
@@ -155,7 +155,7 @@ class MyModel:
 
             input_shape = [self.batch_size, self.input_width, 2]
             self.model.build(input_shape)
-            self.model.summary()             # model info
+            self.model.summary()  # model info
 
         self.model.compile(
             optimizer=optimizer,
@@ -186,20 +186,28 @@ class MyModel:
     def prune_model(self, tflite_model_path, compressed=False, weights_only=True):
 
         self.model = tfmot.sparsity.keras.strip_pruning(self.model)
+        ##### ATTENZIONE qui loro convertono il modello tensorflow salvato.
+        # Noi passiamo il modello keras, cambia qualcosa?
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
+        #PTQ
         converter_optimisations = [tf.lite.Optimize.DEFAULT]
+        converter.optimizations = converter_optimisations
+
+        # Quantization weight only (riduce di 25 Byte la dimensione, con uint8 aumenta addirittura)
         if weights_only:
-            converter.optimizations = converter_optimisations
             converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
+
         tflite_model = converter.convert()
 
         if not os.path.exists(os.path.dirname(tflite_model_path)):
             os.makedirs(os.path.dirname(tflite_model_path))
 
+        # save tflite model
         with open(tflite_model_path, 'wb') as fp:
             fp.write(tflite_model)
 
+        # compress the tflite model and save it
         if compressed:
             compressed_tflite_model_path = tflite_model_path + ".zlib"
             with open(compressed_tflite_model_path, 'wb') as fp:
@@ -210,26 +218,37 @@ class MyModel:
         return os.path.getsize(tflite_model_path) / 1024
 
     # test error MAE on temperature and humidity
-    def test_tflite(self, tflite_model_path, test_dataset):
+    def evaluate_tflite(self, tflite_model_path, test_dataset):
         interpreter = tf.lite.Interpreter(model_path=tflite_model_path)
         interpreter.allocate_tensors()
+
         input_details = interpreter.get_input_details()
         output_details = interpreter.get_output_details()
 
-        error, count = 0, 0
         test_dataset = test_dataset.unbatch().batch(1)
+
+        # error, count = 0, 0
+        total_errors = []
+
         for features, labels in test_dataset:
+            # give the input
             interpreter.set_tensor(input_details[0]['index'], features)
             interpreter.invoke()
-            prediction = interpreter.get_tensor(output_details[0]['index'])
-            mae = np.mean(np.abs(prediction - labels), axis=1)
-            error = error + mae
-            count += 1
 
-        error_temp = error[0, 0] / float(count + 1)
-        error_hum = error[0, 1] / float(count + 1)
+            # predict and get the current ground truth
+            curr_prediction = interpreter.get_tensor(output_details[0]['index']).squeeze()
+            curr_labels = labels.numpy().squeeze()
 
-        return error_temp, error_hum
+            # as error, get the average for the given window
+            curr_error = np.mean(np.abs(curr_prediction - curr_labels), axis=0) # average by column
+
+            total_errors.append(curr_error)
+
+        # error_temp = error[0, 0] / float(count + 1)
+        # error_hum = error[0, 1] / float(count + 1)
+        final_error = np.mean(total_errors, axis=0)
+
+        return final_error
 
     def save_model(self, model_path):
         self.model.save(model_path)
@@ -251,11 +270,11 @@ def main(args):
         label_width = 3
         num_features = 2
 
-        epochs = 80 # 50
-        alpha = 0.2 # 0.2
-        learning_rate = 0.1 # 0.1
-        batch_size = 512 # 512
-        pruning_final_sparsity = 0.93 # 0.93
+        epochs = 80  # 50
+        alpha = 0.2  # 0.2
+        learning_rate = 0.1  # 0.1
+        batch_size = 512  # 512
+        pruning_final_sparsity = 0.93  # 0.93
 
         def scheduler(epoch, lr):
             if epoch >= 10 and epoch % 10 == 0:
@@ -266,15 +285,15 @@ def main(args):
     else:
         model_name = 'model_b'
 
-        input_width = 16 
+        input_width = 6
         label_width = 9
         num_features = 2
 
-        epochs = 20  # 20
-        alpha = 0.1
-        learning_rate = 0.01
-        batch_size = 512
-        pruning_final_sparsity = 0.9
+        epochs = 50  # 20
+        alpha = 0.1 # 0.1
+        learning_rate = 0.01 # 0.01
+        batch_size = 512 # 512
+        pruning_final_sparsity = 0.9 # 0.9
 
         def scheduler(epoch, lr):
             if epoch % 10 == 0:
@@ -292,13 +311,14 @@ def main(args):
 
     # train, test, val dataset
     train_dataset, val_dataset, test_dataset, _ = make_tf_datasets(dir_path, batch_size, input_width, label_width,
-                                                                 num_features)
+                                                                   num_features)
 
     eval_metric = [MultiOutputMAE()]
     loss_function = [tf.keras.losses.MeanSquaredError()]
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
-    model = MyModel(model_name, alpha, version, batch_size, pruning_final_sparsity, input_width, label_width, num_features)
+    model = MyModel(model_name, alpha, version, batch_size, pruning_final_sparsity, input_width, label_width,
+                    num_features)
     model.compile_model(optimizer, loss_function, eval_metric, train_dataset)
     model.train_model(train_dataset, val_dataset, epochs,
                       callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
@@ -307,22 +327,22 @@ def main(args):
     loss, error = model.evaluate_model(test_dataset, return_dict=True)
     print("Model loss: ", loss[0], " - Error: ", error[0])
 
-    # magnitude based pruning
-    tflite_size = model.prune_model(tflite_model_path, compressed=True, weights_only=True)
-    print(f"tflite size: {round(tflite_size, 3)} KB", )
+    # pruning model
+    final_tflite_size = model.prune_model(tflite_model_path, compressed=True, weights_only=True)
 
     # test tflite model
-    error_temp, error_hum = model.test_tflite(tflite_model_path, test_dataset)
-    print('T MAE: ', error_temp)
-    print('Rh MAE:', error_hum)
+    final_error = model.evaluate_tflite(tflite_model_path, test_dataset)
+    print('\n')
+    print(f'Model tflite size = {final_tflite_size:.3f} KB')
+    print(f'MAE (temp) = {final_error[0]:.3f}')
+    print(f'MAE (hum)  = {final_error[1]:.3f}')
 
 
 def make_tf_datasets(dir_path,
-                   batch_size=32,
-                   input_width=6,
-                   label_width=3,  # 3 or 9
-                   num_features=2):
-
+                     batch_size=32,
+                     input_width=6,
+                     label_width=3,  # 3 or 9
+                     num_features=2):
     csv_path = os.path.join(dir_path, "jena_climate_2009_2016.csv")
 
     if not os.path.exists(csv_path):
@@ -364,4 +384,3 @@ if __name__ == '__main__':
                         help='Model version to build: a or b')
     args = parser.parse_args()
     main(args)
-
