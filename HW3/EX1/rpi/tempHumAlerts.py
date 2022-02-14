@@ -74,29 +74,29 @@ def begin(model, tthresh, hthresh):
 
             if abs_error[0] > tthresh:
                 response = {
-                    "bn": "Temperature Alert",
+                    "bn": "raspberrypi.local",
                     "bt": int(datetime.now().timestamp()),
                     "e": [
-                        {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
-                        {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
+                        {"n": "temp_pred", "u": "°C", "t": 0, "v": str(prediction[0])},
+                        {"n": "temp_actual", "u": "°C", "t": 0, "v": str(y_true[0])}
                     ]
                 }
-                alerts.myPublish("/alerts", json.dumps(response))
+                alerts.myPublish("/temperature_alerts", json.dumps(response))
             if abs_error[1] > hthresh:
                 response = {
-                    "bn": "Humidity Alert",
+                    "bn": "raspberrypi.local",
                     "bt": int(datetime.now().timestamp()),
                     "e": [
-                        {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
-                        {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
+                        {"n": "hum_pred", "u": "%", "t": 0, "v": str(prediction[1])},
+                        {"n": "hum_actual", "u": "%", "t": 0, "v": str(y_true[1])}
                     ]
                 }
-                alerts.myPublish("/alerts", json.dumps(response))
+                alerts.myPublish("/humidity_alerts", json.dumps(response))
 
             window[:, 0:5, :] = window[:, 1:6, :]
             window[:, -1, 0] = y_true[0]
             window[:, -1, 1] = y_true[1]
 
-        time.sleep(3)
+        time.sleep(2)
 
     alerts.stop()
