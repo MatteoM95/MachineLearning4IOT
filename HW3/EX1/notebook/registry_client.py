@@ -6,15 +6,14 @@ import base64
 parser = argparse.ArgumentParser()
 parser.add_argument('--ip', type=str, required=False, default="127.0.0.1", help='IP of registry service')
 parser.add_argument('--port', type=int, required=False, default="8080", help='Port of registry service')
-parser.add_argument('--model', type=str, required=False, default="tfliteCNN.tflite", help='Model name')
 args = parser.parse_args()
 
 
-def sendModel():
-    with open(args.model, "rb") as tflite_model:
+def addModel(model_name):
+    with open(model_name, "rb") as tflite_model:
         encoded_model = base64.b64encode(tflite_model.read())
 
-    body = {'model': encoded_model.decode("utf-8"), 'name': args.model}
+    body = {'model': encoded_model.decode("utf-8"), 'name': model_name}
     r = requests.put(f'http://{args.ip}:{args.port}/add', json=body)
     if r.status_code == 200:
         print(f"Model STORED -> {r.content.decode('utf-8')}")
@@ -34,8 +33,7 @@ def getModelList():
 
 
 def predict():
-    params = {'model': "cnn.tflite", 'tthresh': 0.1, 'hthresh': 0.2}
-    r = requests.post(f'http://{args.ip}:{args.port}/request', params=params)
+    r = requests.get(f'http://{args.ip}:{args.port}/predict/?model=cnn.tflite&tthresh=0.1&hthresh=0.2')
     if r.status_code == 200:
         print(r.json()['response'])
     else:
@@ -44,7 +42,11 @@ def predict():
 
 
 def main():
-    sendModel()
+    mlp_model_path = 'mlp.tflite'
+    cnn_model_path = 'cnn.tflite'
+
+    addModel(mlp_model_path)
+    addModel(cnn_model_path)
     getModelList()
     predict()
 

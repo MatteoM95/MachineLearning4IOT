@@ -6,25 +6,73 @@ import json
 import tempHumAlerts
 
 
-class ModelRegistry:
+class AddService:
     exposed = True
 
     def GET(self, *path, **query):
-        if len(path) != 1 or path[0] != "list":
+        pass
+
+    def POST(self, *path, **query):
+        pass
+
+    def PUT(self, *path, **query):
+        if len(path) > 0:
             raise cherrypy.HTTPError(400, 'Wrong path')
+        if len(query) > 0:
+            raise cherrypy.HTTPError(400, 'Wrong query')
+
+        body = cherrypy.request.body.read()
+        body = json.loads(body)
+        encoded_model = body.get('model')
+        model_path = f"./models/{body.get('name')}"
+
+        model = base64.b64decode(encoded_model.encode('utf-8'))
+
+        if not os.path.exists("./models"):
+            os.mkdir("./models")
+        with open(model_path, "wb") as m:
+            m.write(model)
+
+        return os.path.abspath(model_path)
+
+    def DELETE(self, *path, **query):
+        pass
+
+
+class ListService:
+    exposed = True
+
+    def GET(self, *path, **query):
+        if len(path) > 0:
+            raise cherrypy.HTTPError(400, 'Wrong path')
+        if len(query) > 0:
+            raise cherrypy.HTTPError(400, 'Wrong query')
 
         response = {'models': os.listdir("./models")}
 
         return json.dumps(response)
 
     def POST(self, *path, **query):
-        if len(path) != 1 or path[0] != "request":
-            raise cherrypy.HTTPError(400, 'Wrong path')
-        if len(query) != 3 or \
-                'model' not in query or \
-                'tthresh' not in query or \
-                'hthresh' not in query:
-            raise cherrypy.HTTPError(400, 'Wrong parameters')
+        pass
+
+    def PUT(self, *path, **query):
+        pass
+
+    def DELETE(self, *path, **query):
+        pass
+
+
+class PredictService:
+    exposed = True
+
+    def GET(self, *path, **query):
+        # if len(path) > 0:
+        #     raise cherrypy.HTTPError(400, 'Wrong path')
+        # if len(query) != 3 or \
+        #         'model' not in query or \
+        #         'tthresh' not in query or \
+        #         'hthresh' not in query:
+        #     raise cherrypy.HTTPError(400, 'Wrong parameters')
 
         params = query
         tempHumAlerts.begin(model=params['model'],
@@ -33,24 +81,11 @@ class ModelRegistry:
 
         return json.dumps({'response': "OK"})
 
+    def POST(self, *path, **query):
+        pass
+
     def PUT(self, *path, **query):
-        if len(path) != 1 or path[0] != "add":
-            raise cherrypy.HTTPError(400, 'Wrong path')
-
-        body = cherrypy.request.body.read()
-        body = json.loads(body)
-
-        encoded_model = body['model']
-        model_name = f"./models/{body.get('name')}"
-
-        model = base64.b64decode(encoded_model.encode('utf-8'))
-
-        if not os.path.exists("./models"):
-            os.mkdir("./models")
-        with open(model_name, "wb") as m:
-            m.write(model)
-
-        return os.path.abspath(model_name)
+        pass
 
     def DELETE(self, *path, **query):
         pass
@@ -63,7 +98,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     conf = {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}}
-    cherrypy.tree.mount(ModelRegistry(), '', conf)
+    cherrypy.tree.mount(AddService(), '/add', conf)
+    cherrypy.tree.mount(ListService(), '/list', conf)
+    cherrypy.tree.mount(PredictService(), '/predict', conf)
+
     cherrypy.config.update({'server.socket_host': f'{args.ip}'})
     cherrypy.config.update({'server.socket_port': args.port})
     cherrypy.engine.start()
