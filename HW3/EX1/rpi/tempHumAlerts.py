@@ -43,10 +43,10 @@ def begin(model, tthresh, hthresh):
     MEAN = np.array([9.107597, 75.904076], dtype=np.float32)
     STD = np.array([8.654227, 16.557089], dtype=np.float32)
 
-    dht_device = adafruit_dht.DHT11(D4)
+    dht_device = adafruit_dht.DHT22(D4)
+    i = 0
     while True:
         window = np.zeros([1, 6, 2], dtype=np.float32)
-        i = 0
         if i < 6:
             # Try except in order to manage occasional sensor failure
             try:
