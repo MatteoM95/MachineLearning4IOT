@@ -66,13 +66,13 @@ class PredictService:
     exposed = True
 
     def GET(self, *path, **query):
-        if len(path) > 0:
-            raise cherrypy.HTTPError(400, 'Wrong path')
-        if len(query) != 3 or \
-                'model' not in query or \
-                'tthresh' not in query or \
-                'hthresh' not in query:
-            raise cherrypy.HTTPError(400, 'Wrong parameters')
+        # if len(path) > 0:
+        #     raise cherrypy.HTTPError(400, 'Wrong path')
+        # if len(query) != 3 or \
+        #         'model' not in query or \
+        #         'tthresh' not in query or \
+        #         'hthresh' not in query:
+        #     raise cherrypy.HTTPError(400, 'Wrong parameters')
 
         params = query
         tempHumAlerts.begin(model=params['model'],
