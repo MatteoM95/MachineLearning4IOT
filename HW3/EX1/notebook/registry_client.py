@@ -33,7 +33,7 @@ def getModelList():
 
 
 def predict():
-    r = requests.get(f'http://{args.ip}:{args.port}/request/?model=cnn.tflite&tthresh=0.1&hthresh=0.2')
+    r = requests.get(f'http://{args.ip}:{args.port}/predict/?model=cnn.tflite&tthresh=0.1&hthresh=0.2')
     if r.status_code == 200:
         print(r.json()['response'])
     else:
