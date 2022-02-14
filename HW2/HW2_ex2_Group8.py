@@ -8,11 +8,15 @@ import tensorflow as tf
 import zlib
 from scipy import signal
 
+RANDOM_SEED = 42
+tf.random.set_seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
 
 class SignalGenerator:
     def __init__(self, labels, sampling_rate, frame_length, frame_step,
                  num_mel_bins=None, lower_frequency=None, upper_frequency=None,
                  num_coefficients=None, mfcc=False, resampling_rate=None):
+
         self.labels = labels
 
         self.frame_length = frame_length
@@ -32,8 +36,8 @@ class SignalGenerator:
 
         if mfcc is True:
             self.linear_to_mel_weight_matrix = tf.signal.linear_to_mel_weight_matrix(
-                self.num_mel_bins, num_spectrogram_bins, self.sampling_rate,
-                self.lower_frequency, self.upper_frequency)
+                    self.num_mel_bins, num_spectrogram_bins, rate,
+                    self.lower_frequency, self.upper_frequency)
             self.preprocess = self.preprocess_with_mfcc
         else:
             self.preprocess = self.preprocess_with_stft
@@ -218,9 +222,6 @@ class MyModel:
 
 
 def main(args):
-    seed = 42
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
 
     version = args.version.lower()
     print("Training version: ", version)
@@ -254,11 +255,11 @@ def main(args):
     elif version == 'b' or version == 'c':  # BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
         sampling_rate = 16000
         resampling = 8000
-        signal_parameters = {'frame_length': 320, 'frame_step': 160, 'mfcc': True,
+        signal_parameters = {'frame_length': 240, 'frame_step': 120, 'mfcc': True,
                              'lower_frequency': 20, 'upper_frequency': 4000, 'num_mel_bins': 40,
                              'num_coefficients': 10}
         epochs = 25
-        alpha = 0.3
+        alpha = 0.25
 
         input_shape = [65, 10, 1]
         output_shape = 8
