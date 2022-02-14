@@ -1,5 +1,3 @@
-# command line:python3 HW1_ex1_Group8.py --input ../datasets --output th.tfrecord --normalize
-
 import os
 import argparse
 import tensorflow as tf
