@@ -33,7 +33,7 @@ class Alerts:
 
 
 def begin(model, tthresh, hthresh):
-    alerts = Alerts("Temperature/Humidity Alerts")
+    alerts = Alerts("Temperature/Humidity_Alerts")
     alerts.start()
 
     interpreter = tf.lite.Interpreter(f"./models/{model}")
@@ -97,6 +97,6 @@ def begin(model, tthresh, hthresh):
             window[:, -1, 0] = y_true[0]
             window[:, -1, 1] = y_true[1]
 
-        time.sleep(1)
+        time.sleep(3)
 
     alerts.stop()
