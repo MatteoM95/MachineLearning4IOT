@@ -58,11 +58,11 @@ def begin(model, tthresh, hthresh):
             hum = dht_device.humidity
 
         if i < 6:
-            window[0, i, 0] = temp
-            window[0, i, 1] = hum
+            window[0, i, 0] = np.float32(temp)
+            window[0, i, 1] = np.float32(hum)
             i += 1
         else:
-            y_true = np.array([temp, hum], dtype=np.float32)
+            y_true = np.array([np.float32(temp), np.float32(hum)], dtype=np.float32)
 
             window = (window - MEAN) / STD
             interpreter.set_tensor(input_details[0]['index'], window)
