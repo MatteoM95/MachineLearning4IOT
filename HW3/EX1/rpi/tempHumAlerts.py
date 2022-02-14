@@ -40,29 +40,29 @@ def begin(model, tthresh, hthresh):
     interpreter.allocate_tensors()
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
+
+    window = np.zeros([1, 6, 2], dtype=np.float32)
     MEAN = np.array([9.107597, 75.904076], dtype=np.float32)
     STD = np.array([8.654227, 16.557089], dtype=np.float32)
 
     dht_device = adafruit_dht.DHT22(D4)
     i = 0
     while True:
-        window = np.zeros([1, 6, 2], dtype=np.float32)
+        # Try except in order to manage occasional sensor failure
+        try:
+            temp = dht_device.temperature
+            hum = dht_device.humidity
+        except:
+            time.sleep(2)
+            temp = dht_device.temperature
+            hum = dht_device.humidity
+
         if i < 6:
-            # Try except in order to manage occasional sensor failure
-            try:
-                window[0, i, 0] = dht_device.temperature
-                window[0, i, 1] = dht_device.humidity
-                time.sleep(1)
-                i += 1
-            except:
-                pass
+            window[0, i, 0] = temp
+            window[0, i, 1] = hum
+            i += 1
         else:
-            # Try except in order to manage occasional sensor failure
-            try:
-                y_true = np.array([dht_device.temperature, dht_device.humidity])
-            except:
-                time.sleep(2)
-                y_true = np.array([dht_device.temperature, dht_device.humidity])
+            y_true = np.array([temp, hum], dtype=np.float32)
 
             window = (window - MEAN) / STD
             interpreter.set_tensor(input_details[0]['index'], window)
@@ -96,5 +96,7 @@ def begin(model, tthresh, hthresh):
             window[:, 0:5, :] = window[:, 1:6, :]
             window[:, -1, 0] = y_true[0]
             window[:, -1, 1] = y_true[1]
+
+        time.sleep(1)
 
     alerts.stop()
