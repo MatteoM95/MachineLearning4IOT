@@ -33,7 +33,7 @@ class Alerts:
 
 
 def begin(model, tthresh, hthresh):
-    alerts = Alerts("Temperature/Humidity Alerts")
+    alerts = Alerts("Temperature/Humidity_Alerts")
     alerts.start()
 
     interpreter = tf.lite.Interpreter(f"./models/{model}")
@@ -45,7 +45,7 @@ def begin(model, tthresh, hthresh):
     MEAN = np.array([9.107597, 75.904076], dtype=np.float32)
     STD = np.array([8.654227, 16.557089], dtype=np.float32)
 
-    dht_device = adafruit_dht.DHT22(D4)
+    dht_device = adafruit_dht.DHT11(D4)
     i = 0
     while True:
         # Try except in order to manage occasional sensor failure
@@ -58,11 +58,11 @@ def begin(model, tthresh, hthresh):
             hum = dht_device.humidity
 
         if i < 6:
-            window[0, i, 0] = temp
-            window[0, i, 1] = hum
+            window[0, i, 0] = np.float32(temp)
+            window[0, i, 1] = np.float32(hum)
             i += 1
         else:
-            y_true = np.array([temp, hum], dtype=np.float32)
+            y_true = np.array([np.float32(temp), np.float32(hum)], dtype=np.float32)
 
             window = (window - MEAN) / STD
             interpreter.set_tensor(input_details[0]['index'], window)
@@ -74,29 +74,29 @@ def begin(model, tthresh, hthresh):
 
             if abs_error[0] > tthresh:
                 response = {
-                    "bn": "Temperature Alert",
+                    "bn": "raspberrypi.local",
                     "bt": int(datetime.now().timestamp()),
                     "e": [
-                        {"n": "pred", "u": "°C", "t": 0, "v": str(prediction[0])},
-                        {"n": "actual", "u": "°C", "t": 0, "v": str(y_true[0])}
+                        {"n": "temp_pred", "u": "°C", "t": 0, "v": str(prediction[0])},
+                        {"n": "temp_actual", "u": "°C", "t": 0, "v": str(y_true[0])}
                     ]
                 }
-                alerts.myPublish("/alerts", json.dumps(response))
+                alerts.myPublish("/temperature_alerts", json.dumps(response))
             if abs_error[1] > hthresh:
                 response = {
-                    "bn": "Humidity Alert",
+                    "bn": "raspberrypi.local",
                     "bt": int(datetime.now().timestamp()),
                     "e": [
-                        {"n": "pred", "u": "%", "t": 0, "v": str(prediction[1])},
-                        {"n": "actual", "u": "%", "t": 0, "v": str(y_true[1])}
+                        {"n": "hum_pred", "u": "%", "t": 0, "v": str(prediction[1])},
+                        {"n": "hum_actual", "u": "%", "t": 0, "v": str(y_true[1])}
                     ]
                 }
-                alerts.myPublish("/alerts", json.dumps(response))
+                alerts.myPublish("/humidity_alerts", json.dumps(response))
 
             window[:, 0:5, :] = window[:, 1:6, :]
             window[:, -1, 0] = y_true[0]
             window[:, -1, 1] = y_true[1]
 
-        time.sleep(1)
+        time.sleep(2)
 
     alerts.stop()

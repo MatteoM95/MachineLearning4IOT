@@ -36,11 +36,15 @@ class Monitor:
         message = json.loads(msg.payload.decode('utf-8'))
 
         timestamp = datetime.fromtimestamp(message['bt']).strftime('%d/%m/%Y %H:%M:%S')
-        alert_name = message['bn']
         pred_value = message['e'][0]['v']
         pred_value_unit = message['e'][0]['u']
         actual_value = message['e'][1]['v']
         actual_value_unit = message['e'][1]['u']
+
+        if message['e'][0]['n'].startswith("temp"):
+            alert_name = "Temperature Alert"
+        else:
+            alert_name = "Humidity Alert"
 
         print(f"({timestamp}) {alert_name}: Predicted={pred_value}{pred_value_unit} "
               f"Actual={actual_value}{actual_value_unit}")
@@ -49,7 +53,8 @@ class Monitor:
 if __name__ == "__main__":
     monitor = Monitor("Monitoring Client")
     monitor.start()
-    monitor.subscribe("/alerts")
+    monitor.subscribe("/temperature_alerts")
+    monitor.subscribe("/humidity_alerts")
 
     while True:
         time.sleep(1)
