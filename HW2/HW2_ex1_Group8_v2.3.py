@@ -10,7 +10,6 @@ import zlib
 tf.random.set_seed(42)
 np.random.seed(42)
 
-
 class WindowGenerator:
     def __init__(self, batch_size, input_width, label_width, num_features, mean, std):
         self.batch_size = batch_size
@@ -225,8 +224,6 @@ class MyModel:
     def prune_model(self, tflite_model_path, compressed=False, weights_only=True):
 
         self.model = tfmot.sparsity.keras.strip_pruning(self.model)
-        ##### ATTENZIONE qui loro convertono il modello tensorflow salvato.
-        # Noi passiamo il modello keras, cambia qualcosa?
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
         # PTQ
@@ -234,8 +231,8 @@ class MyModel:
         converter.optimizations = converter_optimisations
 
         # # Quantization weight only (riduce di 25 Byte la dimensione, con uint8 aumenta addirittura)
-        # if weights_only:
-        #     converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
+        if weights_only:
+            converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
 
         tflite_model = converter.convert()
 
@@ -301,20 +298,19 @@ def main(args):
 
     if version == 'a':
         model_name = 'model_a'
-
-        epochs = 25  # 25
-        alpha = 0.2  # 0.2
-        pruning_final_sparsity = 0.88  # 0.88
-        learning_rate = 0.1  # 0.1
-
         input_width = 6
         label_width = 3
         num_features = 2
         batch_size = 32  # DEVE ESSERE PER FORZA 32?
 
+        epochs = 30  # 30
+        alpha = 0.2  # 0.2
+        pruning_final_sparsity = 0.85  # 0.85
+        learning_rate = 0.1  # 0.1
+
         def scheduler(epoch, lr):
-            if epoch >= 10 and epoch % 5 == 0:
-                return lr * 0.5
+            if epoch >= 10 and epoch % 5 == 0: #epoch >= 10 and epoch % 5 == 0:
+                return lr * 0.33 #lr * 0.33
             else:
                 return lr
 
@@ -325,14 +321,14 @@ def main(args):
         num_features = 2
         batch_size = 32
 
-        epochs = 30
-        alpha = 0.08
-        pruning_final_sparsity = 0.85
-        learning_rate = 0.1
+        epochs = 20 # 20
+        alpha = 0.1 #0.1
+        pruning_final_sparsity = 0.85 #0.85
+        learning_rate = 0.01 #0.01
 
         def scheduler(epoch, lr):
-            if epoch >= 0 and epoch % 5 == 0:
-                return lr * 0.5
+            if epoch >= 10 and epoch % 10 == 0: #epoch >= 10 and epoch % 10 == 0:
+                return lr * 1 #lr * 1
             else:
                 return lr
 
@@ -350,7 +346,10 @@ def main(args):
 
     eval_metric = [MultiOutputMAE()]
     loss_function = [tf.keras.losses.MeanSquaredError()]
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    if version == 'a':
+        optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    else:
+        optimizer = tf.keras.optimizers.Adam()
 
     model.compile_model(optimizer, loss_function, eval_metric, train_dataset, version)
 
