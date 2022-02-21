@@ -17,13 +17,13 @@ def normalize_func(temp, humi):
 
 def main(args):
     input_file = args.input
-    output_filename = args.output
+    output_file = args.output
     normalize = args.normalize
 
     with open(f"{input_file}", "r") as fp:
         lines = fp.readlines()
 
-    with tf.io.TFRecordWriter(output_filename) as writer:
+    with tf.io.TFRecordWriter(output_file) as writer:
         for line in lines:
             if not line.isspace() and not line.startswith("date"):
                 date, time, temperature, humidity = line.strip().split(",")
@@ -54,7 +54,7 @@ def main(args):
                 payload = tf.train.Example(features=tf.train.Features(feature=mapping))
                 writer.write(payload.SerializeToString())
 
-    print(f"{os.path.getsize(output_filename)}B")
+    print(f"{os.path.getsize(output_file)}B")
 
 
 if __name__ == '__main__':
