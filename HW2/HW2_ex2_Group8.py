@@ -153,7 +153,7 @@ class MyModel:
         input_shape = [32] + self.input_shape
         self.model.build(input_shape)
         print(f"Input shape: {input_shape}")
-        # self.model.summary() # model info
+        self.model.summary()  # model info
 
         self.model.compile( optimizer=optimizer, loss=loss_function, metrics=eval_metric )
 
@@ -164,7 +164,7 @@ class MyModel:
 
         return
 
-    def prune_model(self, tflite_model_path, compressed=False, weights_only=True):
+    def prune_model(self, tflite_model_path, compressed=False):
 
         converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
 
@@ -220,6 +220,10 @@ class MyModel:
 
         return accuracy / float(count)
 
+    #save model Tflite
+    def save_model(self, model_path):
+        self.model.save(model_path)
+
 
 def main(args):
 
@@ -233,7 +237,7 @@ def main(args):
     if os.path.exists(os.path.dirname(tflite_model_path)) is False:
         os.makedirs(os.path.dirname(tflite_model_path))
 
-    if version == 'a':  # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    if version == 'a':
         sampling_rate = 16000
         resampling = None
         signal_parameters = {'frame_length': 640, 'frame_step': 320, 'mfcc': True,
@@ -252,7 +256,7 @@ def main(args):
             decay_rate=0.9
         )
 
-    elif version == 'b' or version == 'c':  # BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+    elif version == 'b' or version == 'c':
         sampling_rate = 16000
         resampling = 8000
         signal_parameters = {'frame_length': 240, 'frame_step': 120, 'mfcc': True,
@@ -281,7 +285,7 @@ def main(args):
     model.compile_model(train_dataset, optimizer, loss_function, eval_metric)
     model.train_model(train_dataset, val_dataset, epochs)
 
-    tflite_model_size = model.prune_model(tflite_model_path, compressed=True, weights_only=True)
+    tflite_model_size = model.prune_model(tflite_model_path, compressed=True)
     print(f"tflite size: {round(tflite_model_size, 3)} KB", )
 
     tflite_performance = model.evaluate_tflite(tflite_model_path, test_dataset)

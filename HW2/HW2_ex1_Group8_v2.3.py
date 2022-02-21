@@ -1,3 +1,4 @@
+# command line: python3 HW2_ex1_Group8.py -v a
 import argparse
 import numpy as np
 import os
@@ -134,25 +135,6 @@ class MyModel:
                 tf.keras.layers.Reshape([label_width, num_features])
             ])
 
-            # CNN model
-            # model = keras.Sequential([
-            #     keras.layers.Conv1D(input_shape=input_shape, filters=int(64 * alpha), kernel_size=3),
-            #     keras.layers.ReLU(),
-            #     keras.layers.Flatten(),
-            #     # keras.layers.Dense(units=int(64 * alpha)),
-            #     # keras.layers.ReLU(),
-            #     keras.layers.Dense(units=label_width * num_features),
-            #     keras.layers.Reshape([label_width, num_features])
-            # ])
-
-            # LSTM model
-            # model = keras.Sequential([
-            #     keras.layers.LSTM(units=int(64 * alpha)),
-            #     keras.layers.Flatten(),
-            #     keras.layers.Dense(label_width * num_features),
-            #     keras.layers.Reshape([label_width, num_features])
-            # ])
-
         elif model_name.lower() == 'model_b':
             model = tf.keras.Sequential([
                 tf.keras.layers.Flatten(),
@@ -170,25 +152,16 @@ class MyModel:
         self.model_name = model_name.lower()
         self.version = version.lower()
 
-    def compile_model(self, optimizer, loss_function, eval_metric, train_ds, version='a'):
+    def compile_model(self, optimizer, loss_function, eval_metric, train_ds):
 
         # magnitude based pruning
-        if version == 'a' or version == 'b':
-            pruning_params = {
-                'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
-                    initial_sparsity=0.30,
-                    final_sparsity=self.final_sparsity,
-                    begin_step=len(train_ds) * 5,
-                    end_step=len(train_ds) * 15)
-            }
-        # elif version == 'b':
-        #     pruning_params = {
-        #         'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
-        #             initial_sparsity=0.4,
-        #             final_sparsity=self.final_sparsity,
-        #             begin_step=len(train_ds) * 2,
-        #             end_step=len(train_ds) * 20)
-        #     }
+        pruning_params = {
+            'pruning_schedule': tfmot.sparsity.keras.PolynomialDecay(
+                initial_sparsity=0.30,
+                final_sparsity=self.final_sparsity,
+                begin_step=len(train_ds) * 5,
+                end_step=len(train_ds) * 15)
+        }
 
         prune_low_magnitude = tfmot.sparsity.keras.prune_low_magnitude
         self.model = prune_low_magnitude(self.model, **pruning_params)
@@ -230,7 +203,7 @@ class MyModel:
         converter_optimisations = [tf.lite.Optimize.DEFAULT]
         converter.optimizations = converter_optimisations
 
-        # # Quantization weight only (riduce di 25 Byte la dimensione, con uint8 aumenta addirittura)
+        # Quantization weight only
         if weights_only:
             converter.target_spec.supported_types = [tf.float16]  # post training quantization to float16 on the weights
 
@@ -301,16 +274,16 @@ def main(args):
         input_width = 6
         label_width = 3
         num_features = 2
-        batch_size = 32  # DEVE ESSERE PER FORZA 32?
+        batch_size = 32 
 
-        epochs = 30  # 30
-        alpha = 0.2  # 0.2
+        epochs = 40  # 40
+        alpha = 0.20  # 0.2
         pruning_final_sparsity = 0.85  # 0.85
         learning_rate = 0.1  # 0.1
 
         def scheduler(epoch, lr):
             if epoch >= 10 and epoch % 5 == 0: #epoch >= 10 and epoch % 5 == 0:
-                return lr * 0.33 #lr * 0.33
+                return lr * 0.25 #lr * 0.25
             else:
                 return lr
 
@@ -351,7 +324,7 @@ def main(args):
     else:
         optimizer = tf.keras.optimizers.Adam()
 
-    model.compile_model(optimizer, loss_function, eval_metric, train_dataset, version)
+    model.compile_model(optimizer, loss_function, eval_metric, train_dataset)
 
     model.train_model(train_dataset, val_dataset, epochs,
                       callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
