@@ -237,6 +237,7 @@ def main(args):
     if os.path.exists(os.path.dirname(tflite_model_path)) is False:
         os.makedirs(os.path.dirname(tflite_model_path))
 
+    # version A
     if version == 'a':
         sampling_rate = 16000
         resampling = None
@@ -256,6 +257,7 @@ def main(args):
             decay_rate=0.9
         )
 
+    #version B and C
     elif version == 'b' or version == 'c':
         sampling_rate = 16000
         resampling = 8000
