@@ -26,5 +26,11 @@ Assignements and exercises for the "Machine Learning for IoT" course at Politecn
 | 05 | 2021/11/9 | CherryPy & REST | [`link`](https://github.com/MatteoM95/MachineLearning4IOT/tree/master/Lab_05) |
 | 06 | 2021/11/9 | MQTT | [`link`](https://github.com/MatteoM95/MachineLearning4IOT/tree/master/Lab_06) |
 
+<a name="contributors" />
 
+### Contributors
+
+<a href="https://github.com/MatteoM95/MachineLearning4IOT/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=MatteoM95/MachineLearning4IOT" />
+</a>
 
